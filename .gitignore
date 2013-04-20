@@ -36,3 +36,6 @@ nosetests.xml
 
 # Virtualenv
 env
+
+# Other
+__pycache__

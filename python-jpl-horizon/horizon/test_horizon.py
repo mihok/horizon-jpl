@@ -31,3 +31,9 @@ class TestHorizonInterface(unittest.TestCase):
         data = self.horizon.major()
 
         self.assertTrue(len(data))
+
+    @pytest.mark.timeout(10)
+    def test_get(self):
+        data = self.horizon.get(100)
+
+        self.assertTrue(data)
