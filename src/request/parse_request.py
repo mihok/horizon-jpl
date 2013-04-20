@@ -7,6 +7,7 @@ print('Content-type: text/html\r\n\r')
 
 import json
 import cgi, cgitb
+#from jpl_horizon_connector.horizon import Horizon
 
 def get_query_json(params):
     if params is None:
@@ -50,17 +51,15 @@ if __name__ == "__main__":
         print "Invalid json structure."
         sys.exit()
 
+    print "blah1"
     json_validation = is_json_obj_valid(json)
     
+    print "blah2"
     if not json_validation["success"]:
         print "Failed"
         sys.exit()
     
     #load json into 
-    
-    
-    #result = is_request_valid(params)
-    
-    print "<br/>jkh"
-    print json_validation
-    print "<br/>"
+    print "Start Horizon<br/>"
+    #horizon_data = Horizon()
+    #print horizon.version()
