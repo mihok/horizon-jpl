@@ -37,7 +37,7 @@ class JplRequestHandler(BaseHTTPRequestHandler):
             
             self.send_header("Content-type", "application/json")
             self.wfile.write("\n")
-            json.dump({'version': 3.75}, self.wfile)
+            json.dump({'version': horizon_version}, self.wfile)
             
         
             #params = parse_qs(self.path[5:])
