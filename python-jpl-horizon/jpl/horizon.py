@@ -41,7 +41,10 @@ class Horizon():
         if len(matches) is 0:
             return []
 
-        return matches
+        # flip the results
+        matches = list((m[1].lower(), m[0]) for m in matches)
+
+        return dict(matches)
 
     def __parse_meta(self, data):
 
