@@ -18,9 +18,10 @@ class Horizon():
     telnet = Telnet()
     re_version = re.compile("version|v\s?(\d+\.\d+)")
     re_list = re.compile("^\s+-?(\d+)\s\s(\w+)", flags=re.MULTILINE)
-    re_meta = re.compile("(\w)+\s+([\d\/\s])+$", flags=re.MULTILINE)
+    re_meta = re.compile("(\w+)\s+([\d\/\s]+)$", flags=re.MULTILINE)
     re_meta_dictA = re.compile("^\s{2}([A-Z].{0,21})=\s{1,2}(.{015})\s[A-Z]", flags=re.MULTILINE)
     re_meta_dictB = re.compile("\s([A-Z].{0,21})=\s{1,2}(.{0,16})\s?$", flags=re.MULTILINE)
+    re_meta_fail = re.compile("No such object record found\: \d+")
     re_cartesian = re.compile(".+")
 
     def __open(self):
@@ -43,16 +44,26 @@ class Horizon():
         return matches
 
     def __parse_meta(self, data):
+
+        if self.re_meta_fail.match(data):
+            return {'error': 'No such object record found'}
+
         matches = []
         matches += self.re_meta_dictA.findall(data)
         matches += self.re_meta_dictB.findall(data)
-        name = self.re_meta.search(data)
+        meta = self.re_meta.search(data).groups()
         matches = list(tuple(v.strip() for v in m) for m in matches)
 
-        matches = tuple(['Name', name.group(0)]) + matches
-        matches = tuple(['ID', name.group(1).split(' / ')[0]]) + matches
+        # import pdb; pdb.set_trace()
 
-        return matches
+        name = meta[0]
+        id = meta[1].strip().split(' / ')[0]
+
+        # include name and id along with detailed data
+        matches += [('ID', id)]
+        matches += [('Name', name)]
+
+        return dict(matches)
 
     def __parse_cartesian(self, data):
         pass
