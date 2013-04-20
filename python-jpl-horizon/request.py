@@ -11,57 +11,78 @@ import SimpleHTTPServer
 import SocketServer
 from BaseHTTPServer import BaseHTTPRequestHandler
 
-# import json
-# import cgi, cgitb
 from jpl.horizon import Horizon
-
+import urllib
 
 class JplRequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
-        if self.path == "/api":
-            self.send_response(200)
-            #send headers:
+        if "/api?query=" in self.path:
+            json_obj = self.__get_query_json(self.path)
+            print json_obj["horizons-api"]
+            
+            json_validation = self.__is_json_obj_valid(json_obj)
+            print json_validation
+            
+            if not json_validation["success"]:
+                self.send_response(400)
+                self.wfile.write("\n")
+            else:
+                self.send_response(200)
+            
+            print "Start Horizon"
+            horizon_data = Horizon()
+            horizon_version =  horizon_data.version()
+            print horizon_version
+            
             self.send_header("Content-type", "application/json")
-            # send a blank line to end headers:
             self.wfile.write("\n")
+            json.dump({'version': 3.75}, self.wfile)
+            
+        
+            #params = parse_qs(self.path[5:])
+            #print params["query"]
+            #json = self.__get_query_json(params)            
+            
+            #self.send_response(200)
+            #self.send_header("Content-type", "text/html")
+            #print json
+            
+            #send headers:
+            #self.send_header("Content-type", "application/json")
+            # send a blank line to end headers:
+            #self.wfile.write("\n")
 
             #send response:
-            json.dump({'success': True}, self.wfile)
+            #json.dump({'success': True}, self.wfile)
 
 
-def get_query_json(params):
-    if params is None:
-        return None
-    elif not params["query"]:
-        return None
+    def __get_query_json(self, path):
+        json_str = urllib.unquote_plus(path[11:])
+        print json_str
+        
+        return json.loads(json_str)
 
-    try:
-        return json.loads(params["query"].value)
-    except:
-        return None
+    def __is_json_obj_valid(self, json_obj):
+        required_keys = ("version", "response_type", "query_type", "filters")
+        query_types = ("id", "name")
+        body_types = ("mb", "sb")
+        response_types = ("json")
 
+        result = {"success": False, "message": "Failed to validate request."}
 
-def is_json_obj_valid(json_obj):
-    required_keys = ("version", "response_type", "query_type", "filters")
-    query_types = ("id", "name")
-    body_types = ("mb", "sb")
-    response_types = ("json")
-
-    result = {"success": False, "message": "Failed to validate request."}
-
-    if not "horizons-api" in json_obj:
-        result["message"] = "Failed. First level key 'horizons-api' missing."
-        return result
-
-    for r_key in required_keys:
-        if not r_key in json_obj["horizons-api"]:
-            result["message"] = "Failed. Second level key '%s' missing." % r_key
+        if not "horizons-api" in json_obj:
+            result["message"] = "Failed. First level key 'horizons-api' missing."
             return result
 
-    result["success"] = True
-    result["message"] = "Success"
-    return result
+        for r_key in required_keys:
+            if not r_key in json_obj["horizons-api"]:
+                result["message"] = "Failed. Second level key '%s' missing." % r_key
+                return result
+
+        result["success"] = True
+        result["message"] = "Success"
+        return result
 
 
 if sys.argv[1:]:
