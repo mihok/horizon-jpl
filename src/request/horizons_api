@@ -1,45 +1,66 @@
 #!/usr/bin/python
 print('Content-type: text/html\r\n\r')
+
+# python-jpl-horizon
+#
+# Written by: Siddarth Kalra (@siddarthkalra)
+
 import json
 import cgi, cgitb
 
-def is_request_valid(params):
-    required_params = ('response_type', 'query_type', 'query')
-    query_type_allowed_values = ('id', 'name')
-    query_body_type_allowed_values = ("mb", "sb")
-    response_type_allowed_values = ('json')
+def get_query_json(params):
+    if params is None:
+        return None
+    elif not params["query"]:
+        return None
     
+    try:
+        return json.loads(params["query"].value)
+    except:
+        return None
+
+def is_json_obj_valid(json_obj):
+    required_keys = ("version", "response_type", "query_type", "filters")
+    query_types = ("id", "name")
+    body_types = ("mb", "sb")
+    response_types = ("json")
+        
     result = {"success": False, "message": "Failed to validate request."}
     
-    if params is None:
+    if not "horizons-api" in json_obj:
+        result["message"] = "Failed. First level key 'horizons-api' missing."
         return result
-    
-    for required_param in required_params:
-        if not required_param in params:
-            result["message"] = "Failed. Missing required params."
+        
+    for r_key in required_keys:
+        if not r_key in json_obj["horizons-api"]:
+            result["message"] = "Failed. Second level key '%s' missing." % r_key
             return result
-        else:
-            if required_param == "query_type":
-                if not params[required_param].value in query_type_allowed_values:
-                    result["message"] = "Failed. query_type values are invalid."
-                    return result
-            elif required_param == "response_type":
-                if not params[required_param].value in response_type_allowed_values:
-                    result["message"] = "Failed. response_type values are invalid."
-                    return result
-                    
-            print "found"
     
-    for field in params:
-        print "<br/>%s<br/>" % params[field].value
+    result["success"] = True
+    result["message"] = "Success"
+    return result
        
 
 if __name__ == "__main__":    
 
     params = cgi.FieldStorage()
+    json = get_query_json(params)
     
-    result = is_request_valid(params)
+    if json is None:
+        print "Invalid json structure."
+        sys.exit()
+
+    json_validation = is_json_obj_valid(json)
     
-    print "<br/>"
-    print result
+    if not json_validation["success"]:
+        print "Failed"
+        sys.exit()
+    
+    #load json into 
+    
+    
+    #result = is_request_valid(params)
+    
+    print "<br/>jkh"
+    print json_validation
     print "<br/>"
