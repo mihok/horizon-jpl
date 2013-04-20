@@ -1,0 +1,45 @@
+#!/usr/bin/python
+print('Content-type: text/html\r\n\r')
+import json
+import cgi, cgitb
+
+def is_request_valid(params):
+    required_params = ('response_type', 'query_type', 'query')
+    query_type_allowed_values = ('id', 'name')
+    query_body_type_allowed_values = ("mb", "sb")
+    response_type_allowed_values = ('json')
+    
+    result = {"success": False, "message": "Failed to validate request."}
+    
+    if params is None:
+        return result
+    
+    for required_param in required_params:
+        if not required_param in params:
+            result["message"] = "Failed. Missing required params."
+            return result
+        else:
+            if required_param == "query_type":
+                if not params[required_param].value in query_type_allowed_values:
+                    result["message"] = "Failed. query_type values are invalid."
+                    return result
+            elif required_param == "response_type":
+                if not params[required_param].value in response_type_allowed_values:
+                    result["message"] = "Failed. response_type values are invalid."
+                    return result
+                    
+            print "found"
+    
+    for field in params:
+        print "<br/>%s<br/>" % params[field].value
+       
+
+if __name__ == "__main__":    
+
+    params = cgi.FieldStorage()
+    
+    result = is_request_valid(params)
+    
+    print "<br/>"
+    print result
+    print "<br/>"
