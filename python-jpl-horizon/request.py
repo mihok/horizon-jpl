@@ -1,5 +1,4 @@
 #!/usr/bin/python
-print('Content-type: text/html\r\n\r')
 
 # python-jpl-horizon
 #
@@ -43,7 +42,7 @@ def is_json_obj_valid(json_obj):
        
 
 if __name__ == "__main__":    
-
+    
     params = cgi.FieldStorage()
     json = get_query_json(params)
     
@@ -51,15 +50,17 @@ if __name__ == "__main__":
         print "Invalid json structure."
         sys.exit()
 
-    print "blah1"
     json_validation = is_json_obj_valid(json)
     
-    print "blah2"
     if not json_validation["success"]:
-        print "Failed"
+        print '''HTTP/1.1 501 Not Implemented
+        Content-type: text/html
+        
+        '''
         sys.exit()
     
     #load json into 
+    print('Content-type: application/json\r\n\r')
     print "Start Horizon<br/>"
     #horizon_data = Horizon()
     #print horizon.version()
