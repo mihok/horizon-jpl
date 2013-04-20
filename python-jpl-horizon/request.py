@@ -19,49 +19,58 @@ class JplRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if "/api?query=" in self.path:
             json_obj = self.__get_query_json(self.path)
-            print json_obj["horizons-api"]
+            if json_obj is None:
+                self.__send_http_response_400("Invalid json provided.")
+                return
             
+            #validate the json request 
             json_validation = self.__is_json_obj_valid(json_obj)
             print json_validation
             
             if not json_validation["success"]:
-                self.send_response(400)
-                self.wfile.write("\n")
+                self.__send_http_response_400(json_validation["message"])
             else:
                 self.send_response(200)
+                self.send_header("Content-type", "application/json")
+                self.end_headers()
             
-            print "Start Horizon"
-            horizon_data = Horizon()
-            horizon_version =  horizon_data.version()
-            print horizon_version
+                json_obj = json_obj["horizons-api"]
+                response = {
+                    "version": None
+                }
+                
+                #initialize horizon
+                horizon_data = Horizon()
+                response["version"] = horizon_data.version()
+                
+                if json_obj["query_type"] == "list" and "filters" in json_obj:
+                    if json_obj["filters"]["body_type"] == "mb":
+                        response["mb"] = horizon_data.major() 
+                    elif json_obj["filters"]["body_type"] == "sb":
+                        response["sb"] = horizon_data.minor()
+                elif json_obj["query_type"] == "id" and "filters" in json_obj and "value" in json_obj["filters"]:
+                    id = json_obj["filters"]["value"]
+                    
+                    if id.isdigit():
+                        response["id"] = horizon_data.get(id)
             
-            self.send_header("Content-type", "application/json")
-            self.wfile.write("\n")
-            json.dump({'version': horizon_version}, self.wfile)
-            
-        
-            #params = parse_qs(self.path[5:])
-            #print params["query"]
-            #json = self.__get_query_json(params)            
-            
-            #self.send_response(200)
-            #self.send_header("Content-type", "text/html")
-            #print json
-            
-            #send headers:
-            #self.send_header("Content-type", "application/json")
-            # send a blank line to end headers:
-            #self.wfile.write("\n")
+                #do the JSON magic
+                json.dump(response, self.wfile)
 
-            #send response:
-            #json.dump({'success': True}, self.wfile)
-
+    def __send_http_response_400(self, message):
+        self.send_response(400)
+        self.send_header("Content-type", "text/html")
+        self.end_headers()
+        self.wfile.write(message)        
 
     def __get_query_json(self, path):
         json_str = urllib.unquote_plus(path[11:])
         print json_str
-        
-        return json.loads(json_str)
+
+        try:
+            return json.loads(json_str)
+        except:
+            return None
 
     def __is_json_obj_valid(self, json_obj):
         required_keys = ("version", "response_type", "query_type", "filters")
