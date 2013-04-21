@@ -43,11 +43,17 @@ HORIZON_OBSERVE = 0
 HORIZON_ELEMENTS = 1
 HORIZON_VECTORS = 2
 
+HORIZON_MAJOR_ALL = 0
+HORIZON_MAJOR_PLANET = 1
+HORIZON_MAJOR_MOON = 2
+HORIZON_MAJOR_ARTIFICAL = 3
+
 
 class Horizon():
     telnet = Telnet()
     re_version = re.compile("version|v\s?(\d+\.\d+)")
-    re_list = re.compile("^\s+-?(\d+)\s\s(\w+)", flags=re.MULTILINE)
+    re_major = re.compile("^\s+(-?\d+)\s\s(\w+)", flags=re.MULTILINE)
+    re_minor = re.compile("^\s+(-?\d+)\s+(-?\d+)\s+[\w\-\(\)\/]+\s?\w*\s+([\w\-]+\s?\d*[\w]*)\s+([\d\.]+)$", flags=re.MULTILINE)
     re_meta = re.compile("(\w+)\s+([\d\/\s]+)$", flags=re.MULTILINE)
     re_meta_dictA = re.compile("^\s{2}([A-Z].{0,21})=\s{1,2}(.{015})\s[A-Z]", flags=re.MULTILINE)
     re_meta_dictB = re.compile("\s([A-Z].{0,21})=\s{1,2}(.{0,16})\s?$", flags=re.MULTILINE)
@@ -65,14 +71,44 @@ class Horizon():
 
         self.telnet.close()
 
-    def __parse_list(self, data):
-        matches = self.re_list.findall(data)
+    def __parse_major(self, data, major_type=HORIZON_MAJOR_ALL):
+        matches = self.re_major.findall(data)
         # import pdb; pdb.set_trace()
         if len(matches) is 0:
             return []
 
+        if major_type == HORIZON_MAJOR_ALL:
+            matches = list((match[1].lower(), match[0]) for match in matches)
+        else:
+            buff = list()
+
+            for match in matches:
+                # import pdb; pdb.set_trace()
+                if major_type is HORIZON_MAJOR_ARTIFICAL and int(match[0]) < 0:
+                    print "SATILLITE {0}".format(match[0])
+                    buff.append((match[1].lower(), match[0]))
+
+                elif major_type is HORIZON_MAJOR_PLANET and int(match[0]) % 10 == 0:
+                    print "PLANET {0}".format(match[0])
+                    buff.append((match[1].lower(), match[0]))
+
+                elif major_type is HORIZON_MAJOR_MOON and int(match[0]) % 10 == 0 and int(match[0]) > 0:
+                    print "MOON {0}".format(match[0])
+                    buff.append((match[1].lower(), match[0]))
+                else:
+                    continue
+            matches = buff
+
+        return dict(matches)
+
+    def __parse_minor(self, data):
+        matches = self.re_minor.findall(data)
+
+        if len(matches) is 0:
+            return []
+
         # flip the results
-        matches = list((m[1].lower(), m[0]) for m in matches)
+        matches = list((m[2].lower(), m[0], m[1], m[3]) for m in matches)
 
         return dict(matches)
 
@@ -99,11 +135,27 @@ class Horizon():
         return dict(matches)
 
     def __parse_cartesian(self, data):
-        matches = self.re_cartesian.findall(data)
-        matches = matches.strip().split("\r\n")
-        print matches
+        matches = self.re_cartesian.search(data).groups()
+        matches = [m.strip().split("\r\n") for m in matches][0]
+        result = []
 
-        pass
+        for i in range(len(matches)):
+            vector = dict()
+            key = ""
+            if (i / 4) % 4 == 0:
+                key = "time"
+            elif (i / 4) % 4 == 3:
+                key = "ltrgrr"
+            elif (i / 4) % 4 == 2:
+                key = "vxvyvz"
+            elif (i / 4) % 4 == 1:
+                key = "xyz"
+            else:
+                break
+                raise Exception()
+            vector[key] = matches[i]
+            result.append(vector)
+        return result
 
     def __parse_version(self, data):
         matches = self.re_version.search(data)
@@ -113,7 +165,7 @@ class Horizon():
         # fail if cant find
         return matches.groups()[0]
 
-    def major(self):
+    def major(self, type=HORIZON_MAJOR_ALL):
         self.__open()
         self.telnet.write("MB\n")
         # import pdb;pdb.set_trace()
@@ -125,20 +177,25 @@ class Horizon():
 
         self.__close(send_quit=True)
 
-        return self.__parse_list(result)
+        return self.__parse_major(result, type)
 
-    def minor(self):
+    def minor(self, page=0):
         self.__open()
         self.telnet.write("RAD > 0\n")
 
+        buff = self.telnet.read_until(HORIZON_MISC_PROMPT)
+        print buff
+
+        self.telnet.write("\r\n")
         result = self.telnet.read_until(HORIZON_QUERY_PROMPT)
+        print result
 
         self.__close(send_quit=True)
 
         if DEBUG:
             print result
 
-        return self.__parse_list(result)
+        return self.__parse_minor(result)
 
     def cartesian(self, id, start, end, ref="500@10", type=HORIZON_VECTORS, frequency="1h"):
 
