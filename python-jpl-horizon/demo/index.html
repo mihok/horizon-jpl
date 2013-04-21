@@ -54,19 +54,20 @@
 		
 		var encodeRequest = encodeURI(jsonRequest);
 		var requestUrl = rootUrl + encodeRequest;
-		//var requestUrl = "http://search.twitter.com/search.json?q=djagula/";
+		
 		//alert(requestUrl);
 		$.ajax({
-			//alert("1");
-			//url: "http://localhost:8000/api?query=%7B%22horizons-api%22:%7B%22version%22:%221.0%22,%22query_type%22:%22list%22,%22response_type%22:%22json%22,%22filters%22:%7B%22body_type%22:%22mb%22%7D%7D%7D",
-			//url: "http://localhost:8000/api?query=%7B%22horizons-api%22:%7B%22version%22:%221.0%22,%22query_type%22:%22id%22,%22response_type%22:%22json%22,%22filters%22:%7B%22value%22:%22599%22%7D%7D%7D",
 			url: requestUrl,
 			dataType: 'json',
-			//dataType: 'json',
-			success: function(data){
-				f.jsonResponse.value = JSON.stringify(data, null, "\t");
-			}
-		})
+			type: 'GET'
+		}).done(function(data) { 
+                alert("success"); 
+		        f.jsonResponse.value = JSON.stringify(data, null, "\t");
+		   })
+          .fail(function(xhr, status, error) { 
+                alert("Error, request failed"); 
+           })
+          .always(function() { alert("complete"); })
 	}
 	
 	/*

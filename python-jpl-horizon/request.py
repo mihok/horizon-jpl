@@ -68,21 +68,22 @@ class JplRequestHandler(BaseHTTPRequestHandler):
                 #do the JSON magic
                 json.dump(response, self.wfile)
         elif self.path.endswith("/"):
-            f = open(curdir + sep + 'demo/index.html') # self.path has /test.html
+            f = open(curdir + sep + "demo/index.html") # self.path has /test.html
             #note that this potentially makes every file on your computer readable by the internet
 
             self.send_response(200)
-            self.send_header('Content-type',    'text/html')
+            self.send_header("Content-type", "text/html")
             self.end_headers()
             self.wfile.write(f.read())
             f.close()
         else:
-            f = open(curdir + sep + 'demo' + self.path)
+            f = open(curdir + sep + "demo" + self.path)
             self.send_response(200)
-            self.send_header('Content-type',    'text/html')
+            self.send_header("Content-type", "text/html")
             self.end_headers()
             self.wfile.write(f.read())
             f.close()
+            
         return
 
     "send back a bad request header with a message"
