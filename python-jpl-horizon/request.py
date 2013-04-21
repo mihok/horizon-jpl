@@ -159,7 +159,7 @@ class JplRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(f.read())
             f.close()
         else:
-            f = open(curdir + sep + 'demo' + self.path)
+            f = open("/data/web/nasa.api.niewma.com/python-jpl-horizon/demo/" + self.path)
             self.send_response(200)
             self.send_header('Content-type',    'text/javascript')
             self.end_headers()
