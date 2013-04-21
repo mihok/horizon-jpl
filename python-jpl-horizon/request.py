@@ -3,6 +3,28 @@
 # python-jpl-horizon
 #
 # Written by: Siddarth Kalra (@siddarthkalra)
+#
+# The MIT License (MIT)
+# Copyright (c) 2013
+#
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to permit
+# persons to whom the Software is furnished to do so, subject to the
+# following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
 
 import sys
 import json
@@ -14,15 +36,78 @@ from BaseHTTPServer import BaseHTTPRequestHandler
 
 from jpl.horizon import Horizon
 import urllib
+import re
 
 class JplRequestHandler(BaseHTTPRequestHandler):
 
-    JSON_QUERY_PARAM_START_INDEX = 11
-
+    "determine the request type being received"
+    def __get_request_info(self, path):
+        demo_request = re.compile("^\/$")
+        id_request = re.compile("^\/api\?body_id=(.*)$")
+        name_request = re.compile("^\/api\?body_name=(.*)$")
+        query_request = re.compile("^\/api\?query=(.*)$")
+        request_info = {
+            "params": None,
+            "type": None 
+        }
+        
+        matches = demo_request.search(path)
+        
+        if matches is not None:
+            request_info["type"] = "demo_req"
+            
+            return request_info
+                    
+        matches = query_request.search(path)
+        
+        if matches is not None:
+            query_json = matches.groups()[0]
+            request_info["params"] = query_json
+            request_info["type"] = "complex_req"
+            
+            return request_info
+        
+        matches = id_request.search(path)
+        
+        if matches is not None:
+            id = matches.groups()[0]
+            request_info["params"] = id
+            request_info["type"] = "id_req"
+            
+            return request_info
+        
+        matches = name_request.search(path)
+        
+        if matches is not None:
+            name = matches.groups()[0]
+            request_info["params"] = name
+            request_info["type"] = "name_req"
+            
+            return request_info
+        
+        return request_info
+        
+        
     def do_GET(self):
-        print self.path
-        if self.path[:self.JSON_QUERY_PARAM_START_INDEX] == "/api?query=":
-            json_obj = self.__get_query_json(self.path)
+    
+        print "PATH: " + self.path
+        
+        #determine the request type being received
+        req_info = self.__get_request_info(self.path)
+        if req_info["type"] is None:
+            self.__send_http_response_400("Invalid request type.")
+            return
+        
+        response = {
+            "version": None
+        }        
+    
+        if req_info["type"] == "id_req":
+            return
+        elif req_info["type"] == "name_req":
+            return
+        elif req_info["type"] == "complex_req":
+            json_obj = self.__get_complex_query_json(self.path)
             
             if json_obj is None:
                 self.__send_http_response_400("Invalid json provided.")
@@ -36,9 +121,6 @@ class JplRequestHandler(BaseHTTPRequestHandler):
                 self.__send_http_response_400(json_validation["message"])
             else:
                 json_obj = json_obj["horizons-api"]
-                response = {
-                    "version": None
-                }
                 
                 #initialize horizon
                 horizon_data = Horizon()
@@ -66,7 +148,7 @@ class JplRequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 
                 #do the JSON magic
-                json.dump(response, self.wfile)
+                json.dump({"horizons-api": response}, self.wfile)
         elif self.path.endswith("/"):
             f = open(curdir + sep + "demo/index.html") # self.path has /test.html
             #note that this potentially makes every file on your computer readable by the internet
@@ -93,9 +175,9 @@ class JplRequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(message)        
 
-    "read the url path and load the JSON"
-    def __get_query_json(self, path):
-        json_str = urllib.unquote_plus(path[self.JSON_QUERY_PARAM_START_INDEX:])
+    "read the url path and load the JSON for a complex"
+    def __get_complex_query_json(self, path):
+        json_str = urllib.unquote_plus(path[11:])
         print json_str
 
         try:
