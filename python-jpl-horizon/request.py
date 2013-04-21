@@ -39,12 +39,144 @@ import urllib
 import re
 
 class JplRequestHandler(BaseHTTPRequestHandler):
+        
+    #TODO -- more convenience API
+    #by enum and name --> planet, asteroid, spacecraft, moon --> .get(name, enum)
+    #by name --> .get(name)
+        
+    def do_GET(self):
+    
+        print "PATH: " + self.path
+        
+        #determine the request type being received
+        req_info = self.__get_request_info(self.path)
+        if req_info["type"] is None:
+            self.__send_http_response_400("Invalid request type.")
+            return
+        
+        response = {
+            "version": None
+        }        
+    
+        if req_info["type"] == "id_req":
+            #initialize horizon
+            horizon_data = Horizon()
+            response["version"] = horizon_data.version()
+                        
+            if req_info["params"] is None or len(req_info["params"]) == 0:
+                self.__send_http_response_400("Invalid request, no body id specified.")
+                return
+            elif not req_info["params"].isdigit():
+                self.__send_http_response_400("Invalid request, body id must be an integer.")
+                return
+            
+            response["body_id"] = horizon_data.get(req_info["params"])
+            
+            #set success headers
+            self.__send_http_response_200("application/json")
+                
+            #do the JSON magic
+            json.dump({"horizons-api": response}, self.wfile)
+            
+        elif req_info["type"] == "name_req":
+            #initialize horizon
+            horizon_data = Horizon()
+            response["version"] = horizon_data.version()
+                        
+            if req_info["params"] is None or len(req_info["params"]) == 0:
+                self.__send_http_response_400("Invalid request, no body name specified.")
+                return
+            
+            response["body_name"] = horizon_data.get(req_info["params"])
+            
+            #set success headers
+            self.__send_http_response_200("application/json")
+                
+            #do the JSON magic
+            json.dump({"horizons-api": response}, self.wfile)
+
+        elif req_info["type"] == "list_req":
+            #initialize horizon
+            horizon_data = Horizon()
+            response["version"] = horizon_data.version()
+                        
+            if req_info["params"] is None or len(req_info["params"]) == 0:
+                self.__send_http_response_400("Invalid request, no list type specified.")
+                return
+            elif req_info["params"] != "mb" and req_info["params"] != "sb":
+                self.__send_http_response_400("Invalid request, only mb or sb lists are supported.")
+                return
+            
+            if req_info["params"] == "mb":
+                response["mb"] = horizon_data.major()
+            elif req_info["params"] == "sb":
+                response["mb"] = horizon_data.minor()
+            
+            #set success headers
+            self.__send_http_response_200("application/json")
+                
+            #do the JSON magic
+            json.dump({"horizons-api": response}, self.wfile)
+             
+        elif req_info["type"] == "complex_req":
+            json_obj = self.__get_complex_query_json(self.path)
+            
+            if json_obj is None:
+                self.__send_http_response_400("Invalid json provided.")
+                return
+            
+            #validate the json request 
+            json_validation = self.__is_json_obj_valid(json_obj)
+            print json_validation
+            
+            if not json_validation["success"]:
+                self.__send_http_response_400(json_validation["message"])
+            else:
+                json_obj = json_obj["horizons-api"]
+                
+                #initialize horizon
+                horizon_data = Horizon()
+                response["version"] = horizon_data.version()
+                
+                #decision tree for what horizon method to run
+                if json_obj["query_type"] == "list":
+                    if json_obj["filters"]["body_type"] == "mb":
+                        response["mb"] = horizon_data.major() 
+                    elif json_obj["filters"]["body_type"] == "sb":
+                        response["sb"] = horizon_data.minor()
+                elif json_obj["query_type"] == "body_id":
+                    response["body_id"] = horizon_data.get(json_obj["filters"]["value"])
+                elif json_obj["query_type"] == "body_name": 
+                    response["body_name"] = horizon_data.get(json_obj["filters"]["value"])
+            
+                #set success headers
+                self.__send_http_response_200("application/json")
+                
+                #do the JSON magic
+                json.dump({"horizons-api": response}, self.wfile)
+        elif self.path.endswith("/"):
+            f = open(curdir + sep + "demo/index.html") # self.path has /test.html
+            #note that this potentially makes every file on your computer readable by the internet
+
+            self.__send_http_response_200("text/html")
+            self.wfile.write(f.read())
+            f.close()
+        else:
+            f = open(curdir + sep + "demo" + self.path)
+            self.__send_http_response_200("text/html")
+            self.wfile.write(f.read())
+            f.close()
+            
+        return
+        
+    #PRIVATE methods
 
     "determine the request type being received"
     def __get_request_info(self, path):
         demo_request = re.compile("^\/$")
         id_request = re.compile("^\/api\?body_id=(.*)$")
         name_request = re.compile("^\/api\?body_name=(.*)$")
+        list_request = re.compile("^\/api\?list=(.*)$")
         query_request = re.compile("^\/api\?query=(.*)$")
         request_info = {
             "params": None,
@@ -85,88 +217,21 @@ class JplRequestHandler(BaseHTTPRequestHandler):
             
             return request_info
         
+        matches = list_request.search(path)
+        
+        if matches is not None:
+            list_value = matches.groups()[0]
+            request_info["params"] = list_value
+            request_info["type"] = "list_req"
+            
+            return request_info
+        
         return request_info
-        
-        
-    def do_GET(self):
-    
-        print "PATH: " + self.path
-        
-        #determine the request type being received
-        req_info = self.__get_request_info(self.path)
-        if req_info["type"] is None:
-            self.__send_http_response_400("Invalid request type.")
-            return
-        
-        response = {
-            "version": None
-        }        
-    
-        if req_info["type"] == "id_req":
-            return
-        elif req_info["type"] == "name_req":
-            return
-        elif req_info["type"] == "complex_req":
-            json_obj = self.__get_complex_query_json(self.path)
-            
-            if json_obj is None:
-                self.__send_http_response_400("Invalid json provided.")
-                return
-            
-            #validate the json request 
-            json_validation = self.__is_json_obj_valid(json_obj)
-            print json_validation
-            
-            if not json_validation["success"]:
-                self.__send_http_response_400(json_validation["message"])
-            else:
-                json_obj = json_obj["horizons-api"]
-                
-                #initialize horizon
-                horizon_data = Horizon()
-                response["version"] = horizon_data.version()
-                
-                #TODO -- more convenience API
-                #by enum and name --> planet, asteroid, spacecraft, moon --> .get(name, enum)
-                #by id --> .get(id)
-                #by name --> .get(name)
-                
-                #decision tree for what horizon method to run
-                if json_obj["query_type"] == "list":
-                    if json_obj["filters"]["body_type"] == "mb":
-                        response["mb"] = horizon_data.major() 
-                    elif json_obj["filters"]["body_type"] == "sb":
-                        response["sb"] = horizon_data.minor()
-                elif json_obj["query_type"] == "id":
-                    response["id"] = horizon_data.get(json_obj["filters"]["value"])
-                elif json_obj["query_type"] == "name": 
-                    response["name"] = horizon_data.get(json_obj["filters"]["value"])
-            
-                #set success headers
-                self.send_response(200)
-                self.send_header("Content-type", "application/json")
-                self.end_headers()
-                
-                #do the JSON magic
-                json.dump({"horizons-api": response}, self.wfile)
-        elif self.path.endswith("/"):
-            f = open(curdir + sep + "demo/index.html") # self.path has /test.html
-            #note that this potentially makes every file on your computer readable by the internet
 
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
-            self.wfile.write(f.read())
-            f.close()
-        else:
-            f = open(curdir + sep + "demo" + self.path)
-            self.send_response(200)
-            self.send_header("Content-type", "text/html")
-            self.end_headers()
-            self.wfile.write(f.read())
-            f.close()
-            
-        return
+    def __send_http_response_200(self, content_type):
+        self.send_response(200)
+        self.send_header("Content-type", content_type)
+        self.end_headers()
 
     "send back a bad request header with a message"
     def __send_http_response_400(self, message):
