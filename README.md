@@ -2,6 +2,14 @@ NASA's JPL HORIOZON Ephemeris System API
 ==================
 This Python API, is an effort towards opening NASA's PDS data sets to the public with a focus on ease of access. Thus creating, NASA's JPL Horizons On-Line Ephemeris System Python API
 
+Background
+------------------------------
+From http://en.wikipedia.org/wiki/Ephemeris:
+```
+For scientific uses, a modern planetary ephemeris comprises software that generates positions of planets and often of 
+their satellites, asteroids, or comets, at virtually any time desired by the user.
+```
+
 Resources
 ------------------------------
 
