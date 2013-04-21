@@ -8,7 +8,8 @@
 		
 	function generateJSON(f)
 	{
-		var queryType = $('input:radio[name="queryType"]:checked').val();
+		//var queryType = $('input:radio[name="queryType"]:checked').val();
+		var queryType = $('select[name="queryType"]').val();
 		var rootUrl = "http://localhost:8000/api?query=";
 		if (queryType == "list")
 		{
@@ -24,15 +25,15 @@
 		var encodeRequest = encodeURI(jsonRequest);
 		var requestUrl = rootUrl + encodeRequest;
 		
+		document.forms["input"]["message"].value = "processing...";
 		//alert(requestUrl);
 		$.ajax({
 			url: requestUrl,
 			dataType: 'json',
 			type: 'GET'
 		}).done(function(data) { 
-                //alert("success"); 
 		        f.jsonResponse.value = JSON.stringify(data, null, "\t");
-		        document.forms["input"]["message"].value = "success";
+		        document.forms["input"]["message"].value = "success!";
 		   })
           .fail(function(xhr, status, error) {
                 document.forms["input"]["message"].value = status + " : " + error;
@@ -41,7 +42,7 @@
           		 //alert("complete");
            })
 	}
-	
+	/*
 	function filter()
 	{
 		var radioSelction = $('input:radio[name="queryType"]:checked').val()
@@ -60,25 +61,41 @@
 			div_ref.style.visibility = "visible";
 		}
 	}
-	/*
-	function filter2()
+	*/
+	function filter(select)
 	{
-		var radioSelction = $('input:select[name="queryType"]:checked').val()
-		if (radioSelction == 'list')
+		var optionSelected = $('select[name="queryType"]').val();
+		//alert(optionSelected);
+		if (optionSelected == "list")
 		{
 			var div_ref = document.getElementById("id_textbox_1");
 			div_ref.style.visibility = "visible";
 			var div_ref = document.getElementById("id_textbox_2");
 			div_ref.style.visibility = "hidden";
+		}
+		else if (optionSelected == "body_id")
+		{
+			var div_ref = document.getElementById("id_textbox_1");
+			div_ref.style.visibility = "hidden";
+			var div_ref = document.getElementById("id_textbox_2");
+			div_ref.style.visibility = "visible";
 		}
 		else
 		{
 			var div_ref = document.getElementById("id_textbox_1");
 			div_ref.style.visibility = "hidden";
 			var div_ref = document.getElementById("id_textbox_2");
-			div_ref.style.visibility = "visible";
+			div_ref.style.visibility = "hidden";
 		}
-	}*/
+	}
+	
+	function resetForm()
+	{
+		var div_ref = document.getElementById("id_textbox_1");
+		div_ref.style.visibility = "hidden";
+		var div_ref = document.getElementById("id_textbox_2");
+		div_ref.style.visibility = "hidden";
+	}
 	
 </script>
 
@@ -92,14 +109,16 @@
 <form class="" name="input">
 	<div class="">
 		Select a query type:<br>
-		<input type="radio" name="queryType" value="list" class="" onclick="filter();">list<br>
-		<input type="radio" name="queryType" value="id" class="" onclick="filter();">id<br><br>
+		<!--input type="radio" name="queryType" value="list" class="" onclick="filter();">list<br>
+		<input type="radio" name="queryType" value="id" class="" onclick="filter();">id<br><br-->
 		
-		<!--select name="queryType2" oncontrolselect="filter2();">
+		<select name="queryType" onchange=filter(this)>
+			<option selected="selected">--- select... ---</option>
 			<option value="list">list</option>
-			<option value="id">id</option>
-		</select-->
-		
+			<option value="body_id">body ID</option>
+		</select>
+		<br>
+		<br>
 		<div id=id_textbox_1 style="visibility:hidden;">
 	      	Enter body type:<br> 
 	      	<input type="Text" name="bodyType">
@@ -112,9 +131,11 @@
 		JSON output:<br>
 		<textarea id="jsonResponse" name="jsonResponse" cols="100" rows="15" class=""></textarea><br>
 		
-		Status: <input type="Text" name="message" value=""><br>
+		Status: <input type="Text" name="message" value=""><br><br>
 		
-		<input type="button" onClick="return generateJSON(this.form)" value="Generate" class=""><br><br>
+		<input type="button" onClick="return generateJSON(this.form)" value="Generate" class="">
+		&nbsp;&nbsp;&nbsp;
+		<input type="reset" value="Reset" onClick="return resetForm()">
 		
 	</div>
 
