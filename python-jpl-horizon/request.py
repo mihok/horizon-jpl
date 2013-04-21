@@ -77,7 +77,6 @@ class JplRequestHandler(BaseHTTPRequestHandler):
                 
             #do the JSON magic
             json.dump({"horizons-api": response}, self.wfile)
-            
         elif req_info["type"] == "name_req":
             #initialize horizon
             horizon_data = Horizon()
@@ -94,7 +93,6 @@ class JplRequestHandler(BaseHTTPRequestHandler):
                 
             #do the JSON magic
             json.dump({"horizons-api": response}, self.wfile)
-
         elif req_info["type"] == "list_req":
             #initialize horizon
             horizon_data = Horizon()
@@ -116,8 +114,7 @@ class JplRequestHandler(BaseHTTPRequestHandler):
             self.__send_http_response_200("application/json")
                 
             #do the JSON magic
-            json.dump({"horizons-api": response}, self.wfile)
-             
+            json.dump({"horizons-api": response}, self.wfile)      
         elif req_info["type"] == "complex_req":
             json_obj = self.__get_complex_query_json(self.path)
             
@@ -154,14 +151,14 @@ class JplRequestHandler(BaseHTTPRequestHandler):
                 
                 #do the JSON magic
                 json.dump({"horizons-api": response}, self.wfile)
-        elif self.path.endswith("/"):
+        elif req_info["type"] == "demo_req":
             f = open(curdir + sep + "demo/index.html") # self.path has /test.html
             #note that this potentially makes every file on your computer readable by the internet
 
             self.__send_http_response_200("text/html")
             self.wfile.write(f.read())
             f.close()
-        else:
+        elif req_info["type"] == "file_req":
             f = open(curdir + sep + "demo" + self.path)
             self.__send_http_response_200("text/html")
             self.wfile.write(f.read())
@@ -174,14 +171,23 @@ class JplRequestHandler(BaseHTTPRequestHandler):
     "determine the request type being received"
     def __get_request_info(self, path):
         demo_request = re.compile("^\/$")
+        file_request = re.compile("^\/(.+)\.{1}[a-z]+$")
         id_request = re.compile("^\/api\?body_id=(.*)$")
         name_request = re.compile("^\/api\?body_name=(.*)$")
         list_request = re.compile("^\/api\?list=(.*)$")
         query_request = re.compile("^\/api\?query=(.*)$")
+        
         request_info = {
             "params": None,
             "type": None 
         }
+        
+        matches = file_request.search(path)
+        
+        if matches is not None:
+            request_info["type"] = "file_req"
+            
+            return request_info
         
         matches = demo_request.search(path)
         
