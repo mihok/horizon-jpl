@@ -35,6 +35,7 @@ from config import (
     HORIZON_QUERY_PROMPT,
     HORIZON_OPTION_PROMPT,
     HORIZON_MISC_PROMPT,
+    HORIZON_CARTESIAN_PROMPT,
     DEBUG,
 )
 
@@ -99,8 +100,8 @@ class Horizon():
 
     def __parse_cartesian(self, data):
         matches = self.re_cartesian.findall(data)
-
-        print matches.groups()
+        matches = matches.strip().split("\r\n")
+        print matches
 
         pass
 
@@ -128,7 +129,7 @@ class Horizon():
 
     def minor(self):
         self.__open()
-        self.telnet.write("SB\n")
+        self.telnet.write("RAD > 0\n")
 
         result = self.telnet.read_until(HORIZON_QUERY_PROMPT)
 
@@ -146,10 +147,12 @@ class Horizon():
         self.__open()
         self.telnet.write("{0}\n".format(id))
 
-        self.telnet.read_until(HORIZON_QUERY_PROMPT)
+        buff = self.telnet.read_until(HORIZON_QUERY_PROMPT)
+        print buff
 
         self.telnet.write("E\n")
-        self.telnet.read_until(HORIZON_QUERY_PROMPT)
+        buff = self.telnet.read_until(HORIZON_MISC_PROMPT)
+        print buff
 
         # select cartesian data type
         if type is HORIZON_OBSERVE:
@@ -159,30 +162,38 @@ class Horizon():
         else:
             self.telnet.write("v\n")
 
-        self.telnet.read_until(HORIZON_QUERY_PROMPT)
+        print self.telnet.read_until(HORIZON_MISC_PROMPT)
 
         # select reference point ID, coord, geo
         self.telnet.write("{0}\n".format(ref))
-        self.telnet.read_until(HORIZON_OPTION_PROMPT)
+        print self.telnet.read_until(HORIZON_OPTION_PROMPT)
         self.telnet.write("y\n")
 
         # select reference plane: body, eclip, frame
-        self.telnet.read_until(HORIZON_MISC_PROMPT)
+        print self.telnet.read_until(HORIZON_MISC_PROMPT)
         self.telnet.write("body\n")
 
-        self.telnet.read_until(HORIZON_MISC_PROMPT)
+        print self.telnet.read_until(HORIZON_MISC_PROMPT)
         self.telnet.write("{0}\n".format(start))
-        self.telnet.read_until(HORIZON_MISC_PROMPT)
+        print self.telnet.read_until(HORIZON_MISC_PROMPT)
         self.telnet.write("{0}\n".format(end))
 
-        self.telnet.read_until(HORIZON_MISC_PROMPT)
+        # frequency: 1d, 1h, 1m
+        print self.telnet.read_until(HORIZON_MISC_PROMPT)
         self.telnet.write("{0}\n".format(frequency))
 
-        result = self.telnet.read_until(HORIZON_QUERY_PROMPT)
+        # accept output
+        print self.telnet.read_until(HORIZON_MISC_PROMPT)
+        self.telnet.write("\r\n")
+
+        result = self.telnet.read_until(HORIZON_CARTESIAN_PROMPT)
 
         # Cartesian queries have a weird exit
         self.telnet.write("N\n")
         self.__close(send_quit=True)
+
+        if DEBUG:
+            print result
 
         return self.__parse_cartesian(result)
 

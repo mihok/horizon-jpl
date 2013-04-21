@@ -6,6 +6,7 @@
 
 import sys
 import json
+from os import curdir, sep
 
 import SimpleHTTPServer
 import SocketServer
@@ -19,6 +20,7 @@ class JplRequestHandler(BaseHTTPRequestHandler):
     JSON_QUERY_PARAM_START_INDEX = 11
 
     def do_GET(self):
+        print self.path
         if self.path[:self.JSON_QUERY_PARAM_START_INDEX] == "/api?query=":
             json_obj = self.__get_query_json(self.path)
             
@@ -65,7 +67,23 @@ class JplRequestHandler(BaseHTTPRequestHandler):
                 
                 #do the JSON magic
                 json.dump(response, self.wfile)
+        elif self.path.endswith("/"):
+            f = open(curdir + sep + 'demo/index.html') # self.path has /test.html
+            #note that this potentially makes every file on your computer readable by the internet
 
+            self.send_response(200)
+            self.send_header('Content-type',    'text/html')
+            self.end_headers()
+            self.wfile.write(f.read())
+            f.close()
+        else:
+            f = open(curdir + sep + 'demo' + self.path)
+            self.send_response(200)
+            self.send_header('Content-type',    'text/html')
+            self.end_headers()
+            self.wfile.write(f.read())
+            f.close()
+        return
 
     "send back a bad request header with a message"
     def __send_http_response_400(self, message):

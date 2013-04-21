@@ -42,7 +42,7 @@ class TestHorizonInterface(unittest.TestCase):
 
         self.assertTrue(version)
 
-    @pytest.mark.timeout(10)
+    @pytest.mark.timeout(300)
     def test_minor_bodies(self):
         data = self.horizon.minor()
 
