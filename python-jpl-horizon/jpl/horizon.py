@@ -3,28 +3,29 @@
 # Written by: Matthew Mihok (@mattmattmatt)
 #
 # The MIT License (MIT)
-# Copyright (c) 2013 
+# Copyright (c) 2013
 #
 # Permission is hereby granted, free of charge, to any person obtaining a
-# copy of this software and associated documentation files (the 
-# "Software"), to deal in the Software without restriction, including 
-# without limitation the rights to use, copy, modify, merge, publish, 
-# distribute, sublicense, and/or sell copies of the Software, and to permit 
-# persons to whom the Software is furnished to do so, subject to the 
+# copy of this software and associated documentation files (the
+# "Software"), to deal in the Software without restriction, including
+# without limitation the rights to use, copy, modify, merge, publish,
+# distribute, sublicense, and/or sell copies of the Software, and to permit
+# persons to whom the Software is furnished to do so, subject to the
 # following conditions:
 #
-# The above copyright notice and this permission notice shall be included 
+# The above copyright notice and this permission notice shall be included
 # in all copies or substantial portions of the Software.
 #
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS 
-# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
-# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+# OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
 import re
+import datetime
 from telnetlib import Telnet
 
 from config import (
@@ -32,8 +33,14 @@ from config import (
     HORIZON_PORT,
     HORIZON_PROMPT,
     HORIZON_QUERY_PROMPT,
+    HORIZON_OPTION_PROMPT,
+    HORIZON_MISC_PROMPT,
     DEBUG,
 )
+
+HORIZON_OBSERVE = 0
+HORIZON_ELEMENTS = 1
+HORIZON_VECTORS = 2
 
 
 class Horizon():
@@ -44,7 +51,7 @@ class Horizon():
     re_meta_dictA = re.compile("^\s{2}([A-Z].{0,21})=\s{1,2}(.{015})\s[A-Z]", flags=re.MULTILINE)
     re_meta_dictB = re.compile("\s([A-Z].{0,21})=\s{1,2}(.{0,16})\s?$", flags=re.MULTILINE)
     re_meta_fail = re.compile("No such object record found\: \d+")
-    re_cartesian = re.compile(".+")
+    re_cartesian = re.compile("\$\$SOE(.*)\$\$EOE", flags=re.DOTALL)
 
     def __open(self):
         self.telnet.open(HORIZON_HOST, HORIZON_PORT)
@@ -91,6 +98,10 @@ class Horizon():
         return dict(matches)
 
     def __parse_cartesian(self, data):
+        matches = self.re_cartesian.findall(data)
+
+        print matches.groups()
+
         pass
 
     def __parse_version(self, data):
@@ -121,36 +132,96 @@ class Horizon():
 
         result = self.telnet.read_until(HORIZON_QUERY_PROMPT)
 
+        self.__close(send_quit=True)
+
         if DEBUG:
             print result
 
+        return self.__parse_list(result)
+
+    def cartesian(self, id, start, end, ref="500@10", type=HORIZON_VECTORS, frequency="1h"):
+
+        # make sure start / end are valid or throw error
+
+        self.__open()
+        self.telnet.write("{0}\n".format(id))
+
+        self.telnet.read_until(HORIZON_QUERY_PROMPT)
+
+        self.telnet.write("E\n")
+        self.telnet.read_until(HORIZON_QUERY_PROMPT)
+
+        # select cartesian data type
+        if type is HORIZON_OBSERVE:
+            self.telnet.write("o\n")
+        elif type is HORIZON_ELEMENTS:
+            self.telnet.write("e\n")
+        else:
+            self.telnet.write("v\n")
+
+        self.telnet.read_until(HORIZON_QUERY_PROMPT)
+
+        # select reference point ID, coord, geo
+        self.telnet.write("{0}\n".format(ref))
+        self.telnet.read_until(HORIZON_OPTION_PROMPT)
+        self.telnet.write("y\n")
+
+        # select reference plane: body, eclip, frame
+        self.telnet.read_until(HORIZON_MISC_PROMPT)
+        self.telnet.write("body\n")
+
+        self.telnet.read_until(HORIZON_MISC_PROMPT)
+        self.telnet.write("{0}\n".format(start))
+        self.telnet.read_until(HORIZON_MISC_PROMPT)
+        self.telnet.write("{0}\n".format(end))
+
+        self.telnet.read_until(HORIZON_MISC_PROMPT)
+        self.telnet.write("{0}\n".format(frequency))
+
+        result = self.telnet.read_until(HORIZON_QUERY_PROMPT)
+
+        # Cartesian queries have a weird exit
+        self.telnet.write("N\n")
         self.__close(send_quit=True)
 
-        return self.__parse_list(result)
+        return self.__parse_cartesian(result)
+
+    def query(self, query):
+        self.__open()
+        self.telnet.write("{0}\n".format(query))
+
+        result = self.telnet.read_until(HORIZON_QUERY_PROMPT)
+
+        self.__close(send_quit=True)
+
+        if "Number of matches" in result:
+            return self.__parse_list(result)
+
+        # if query returns single result, use meta parser
+        return self.__parse_meta(result)
 
     def get(self, id):
         self.__open()
-
         self.telnet.write("{0}\n".format(id))
 
         result = self.telnet.read_until(HORIZON_QUERY_PROMPT)
 
+        self.__close(send_quit=True)
+
         if DEBUG:
             print result
-
-        self.__close(send_quit=True)
 
         return self.__parse_meta(result)
 
     def version(self):
         self.__open()
-
         self.telnet.write("quit\n")
+
         result = self.telnet.read_until(HORIZON_QUERY_PROMPT)
+
+        self.__close()
 
         if DEBUG:
             print result
-
-        self.__close()
 
         return self.__parse_version(result)
