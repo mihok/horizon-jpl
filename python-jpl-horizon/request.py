@@ -42,6 +42,11 @@ class JplRequestHandler(BaseHTTPRequestHandler):
                 horizon_data = Horizon()
                 response["version"] = horizon_data.version()
                 
+                #TODO -- more convenience API
+                #by enum and name --> planet, asteroid, spacecraft, moon --> .get(name, enum)
+                #by id --> .get(id)
+                #by name --> .get(name)
+                
                 #decision tree for what horizon method to run
                 if json_obj["query_type"] == "list":
                     if json_obj["filters"]["body_type"] == "mb":
@@ -97,7 +102,7 @@ class JplRequestHandler(BaseHTTPRequestHandler):
                 result["message"] = "Failed. Second level key '%s' missing." % r_key
                 return result
 
-         #TODO -- more in-depth json query validation
+         #TODO -- more in-depth JSON query validation
          #if json_obj["horizons-api"]["query_type"] == "list":
          #elif json_obj["horizons-api"]["query_type"] == "id":
          #elif json_obj["horizons-api"]["query_type"] == "name":
@@ -106,7 +111,7 @@ class JplRequestHandler(BaseHTTPRequestHandler):
         result["message"] = "Success"
         return result
 
-
+#HTTP server related code
 if sys.argv[1:]:
     port = int(sys.argv[1])
 else:
@@ -117,27 +122,3 @@ httpd = SocketServer.TCPServer(server_address, JplRequestHandler)
 
 print "serving at port", port
 httpd.serve_forever()
-
-
-# if __name__ == "__main__":
-#     # params = cgi.FieldStorage()
-#     # json = get_query_json(params)
-
-#     if json is None:
-#         print "Invalid json structure."
-#         sys.exit()
-
-#     json_validation = is_json_obj_valid(json)
-
-#     if not json_validation["success"]:
-#         print '''HTTP/1.1 501 Not Implemented
-#         Content-type: text/html
-
-#         '''
-#         sys.exit()
-
-#     #load json into
-#     print('Content-type: application/json\r\n\r')
-#     print "Start Horizon<br/>"
-#     #horizon_data = Horizon()
-#     #print horizon.version()
