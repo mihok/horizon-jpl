@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<script src="codemirror.js"></script>
+<link rel="stylesheet" href="codemirror.css">
+<script src="javascript.js"></script>
+<script type="text/javascript" src="jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="json2.js"></script>
+<script type="text/javascript" src="http://twitter.com/javascripts/blogger.js"></script>
+<script type="text/javascript">
+	/*function formValid()
+	{
+		var x = document.forms["input"]["majorBody"].value
+		var y = document.forms["input"]["minorBody"].value
+		if ((x == null || x == "") && (y == null || y == ""))
+		{
+			alert("All fields need to be completed.");
+			return false;
+		}
+	}
+	
+	function outputText(f)
+	{
+		if (formValid() != false)
+		{
+			f.apiResult.value = f.majorBody.value + f.minorBody.value;
+		}
+			
+	}*/
+	//alert('""');
+	//var jsonRequest = '{"horizons-api":{"version":"1.0","query_type":"id","response_type":"json","filters":{"value":"599"}}}';
+	//var myUrl = "testing";
+	//alert(myUrl);
+	//var rootUrl = "http://localhost:8000/api?query=";
+	//var encodeRequest = encodeURI(jsonRequest);
+	//var requestUrl = rootUrl + encodeRequest;
+	//alert(requestUrl);
+	
+	function generateJSON(f)
+	{
+		var queryType = $('input:radio[name="queryType"]:checked').val();
+		var rootUrl = "http://localhost:8000/api?query=";
+		if (queryType == "list")
+		{
+			var filter = document.forms["input"]["bodyType"].value
+			var jsonRequest = '{"horizons-api":{"version":"1.0","query_type":"'+queryType+'","response_type":"json","filters":{"body_type":"'+filter+'"}}}';
+		}
+		else
+		{
+			var filter = document.forms["input"]["idValue"].value
+			var jsonRequest = '{"horizons-api":{"version":"1.0","query_type":"'+queryType+'","response_type":"json","filters":{"value":"'+filter+'"}}}';
+		}
+		
+		var encodeRequest = encodeURI(jsonRequest);
+		var requestUrl = rootUrl + encodeRequest;
+		//var requestUrl = "http://search.twitter.com/search.json?q=djagula/";
+		//alert(requestUrl);
+		$.ajax({
+			//alert("1");
+			//url: "http://localhost:8000/api?query=%7B%22horizons-api%22:%7B%22version%22:%221.0%22,%22query_type%22:%22list%22,%22response_type%22:%22json%22,%22filters%22:%7B%22body_type%22:%22mb%22%7D%7D%7D",
+			//url: "http://localhost:8000/api?query=%7B%22horizons-api%22:%7B%22version%22:%221.0%22,%22query_type%22:%22id%22,%22response_type%22:%22json%22,%22filters%22:%7B%22value%22:%22599%22%7D%7D%7D",
+			url: requestUrl,
+			dataType: 'json',
+			//dataType: 'json',
+			success: function(data){
+				f.jsonResponse.value = JSON.stringify(data, null, "\t");
+			}
+		})
+	}
+	
+	/*
+	function generateJSON(f)
+	{
+		//var name = f.majorBody.value;
+		var name = $('input:radio[name="queryType"]:checked').val();
+		$.ajax({
+			url: "http://search.twitter.com/search.json?q="+name+"/",
+			dataType: 'jsonp',
+			success: function(data){
+				f.jsonResponse.value = JSON.stringify(data, null, "\t");
+			}
+		})
+	}*/
+	
+	/*
+	function selectId() {
+		var div_ref = document.getElementById("id_textbox_1");
+		div_ref.style.visibility = "hidden";
+		var div_ref = document.getElementById("id_textbox_2");
+		div_ref.style.visibility = "visible";
+	}
+		 
+	function selectList() {
+		var div_ref = document.getElementById("id_textbox_1");
+		div_ref.style.visibility = "visible";
+		var div_ref = document.getElementById("id_textbox_2");
+		div_ref.style.visibility = "hidden";
+	}*/
+	
+	function filter()
+	{
+		var radioSelction = $('input:radio[name="queryType"]:checked').val()
+		if (radioSelction == 'list')
+		{
+			var div_ref = document.getElementById("id_textbox_1");
+			div_ref.style.visibility = "visible";
+			var div_ref = document.getElementById("id_textbox_2");
+			div_ref.style.visibility = "hidden";
+		}
+		else
+		{
+			var div_ref = document.getElementById("id_textbox_1");
+			div_ref.style.visibility = "hidden";
+			var div_ref = document.getElementById("id_textbox_2");
+			div_ref.style.visibility = "visible";
+		}
+	}
+	
+</script>
+
+<title>Phython JPL Horizon</title>
+</head>
+
+<body class="">
+<h1>Phython JPL Horizon</h1>
+<p>Please start by entering parameter values for query options.
+<br>
+<form class="" name="input">
+	<div class="">
+		Select a query type:<br>
+		<input type="radio" name="queryType" value="list" class="" onclick="filter();">list<br>
+		<input type="radio" name="queryType" value="id" class="" onclick="filter();">id<br><br>
+		
+		<div id=id_textbox_1 style="visibility:hidden;">
+	      	Enter body type:<br> 
+	      	<input type="Text" name="bodyType">
+      	</div>
+      	<div id=id_textbox_2 style="visibility:hidden;">
+	      	Enter value:<br>
+	      	<input type="Text" name="idValue">
+      	</div>
+      	<br>
+		<!-- 
+		<input type="button" onClick="return outputText(this.form)" value="Submit" class=""><br><br>
+
+		<textarea name="apiResult" cols="50" class=""></textarea><br><br>
+		-->
+		JSON output:<br>
+		<textarea id="jsonResponse" name="jsonResponse" cols="100" rows="15" class=""></textarea><br>
+		
+		<input type="button" onClick="return generateJSON(this.form)" value="Generate" class=""><br><br>
+		
+	</div>
+
+</form>
+
+</body>
+</html>
