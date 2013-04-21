@@ -152,7 +152,7 @@ class JplRequestHandler(BaseHTTPRequestHandler):
                 #do the JSON magic
                 json.dump({"horizons-api": response}, self.wfile)
         elif req_info["type"] == "demo_req":
-            f = open(curdir + sep + "demo/index.html") # self.path has /test.html
+            f = open("/data/web/nasa.api.niewma.com/python-jpl-horizon/demo/index.html")
             #note that this potentially makes every file on your computer readable by the internet
 
             self.__send_http_response_200("text/html")
