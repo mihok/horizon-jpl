@@ -10,6 +10,10 @@ For scientific uses, a modern planetary ephemeris comprises software that genera
 their satellites, asteroids, or comets, at virtually any time desired by the user.
 ```
 
+API Documentation
+------------------------------
+https://docs.google.com/document/d/1g9q3ln9LVAATOZ15986HLTCaqcAj_Jd8e_jOGS3YWrE/pub
+
 Resources
 ------------------------------
 
