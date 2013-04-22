@@ -24,7 +24,7 @@ Jet Propulsion Labs: http://www.jpl.nasa.gov/
 HORIZON User Manual: http://ssd.jpl.nasa.gov/?horizons_doc
 
 
-Team
+Contributors
 ------------------------------
 ```
 Matthew Mihok (@mattmattmatt)
