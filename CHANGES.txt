@@ -3,3 +3,9 @@ v0.0.1, 2013-Apr-18 -- Initial release.
 v0.0.2, 2013-Apr-21 -- Alpha release for nasa hackathon
 
 v0.1.0, 2013-Apr-22 -- Package distrobution release
+
+v0.1.1, 2013-Apr-22 -- Updating package meta data
+
+v0.1.2, 2013-Apr-22 -- Fixing standalone executable
+
+v0.1.2, 2013-Apr-22 -- Removing bin standalone, adding convenience request_handler

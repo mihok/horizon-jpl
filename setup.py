@@ -2,11 +2,11 @@ from distutils.core import setup
 
 setup(
     name='HorizonJPL',
-    version='0.1.1',
+    version='0.1.3',
     author='Matthew Mihok',
     author_email='matthew.mihok@niewma.com',
     packages=['horizon', 'horizon.test'],
-    scripts=['standalone.py'],
+    scripts=[],
     url='http://pypi.python.org/pypi/HorizonJPL/',
     license='LICENSE.txt',
     description='Access to NASA\'s JPL HORIZON Ephemeris System',
