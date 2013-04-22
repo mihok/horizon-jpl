@@ -165,7 +165,7 @@ class Interface():
         # fail if cant find
         return matches.groups()[0]
 
-    def major(self, type=HORIZON_MAJOR_ALL):
+    def get_major(self, type=HORIZON_MAJOR_ALL):
         self.__open()
         self.telnet.write("MB\n")
         # import pdb;pdb.set_trace()
@@ -179,7 +179,7 @@ class Interface():
 
         return self.__parse_major(result, type)
 
-    def minor(self, page=0):
+    def get_minor(self, page=0):
         self.__open()
         self.telnet.write("RAD > 0\n")
 
@@ -197,7 +197,7 @@ class Interface():
 
         return self.__parse_minor(result)
 
-    def cartesian(self, id, start, end, ref="500@10", type=HORIZON_VECTORS, frequency="1h"):
+    def get_cartesian(self, id, start, end, ref="500@10", type=HORIZON_VECTORS, frequency="1h"):
 
         # make sure start / end are valid or throw error
 
@@ -281,7 +281,7 @@ class Interface():
 
         return self.__parse_meta(result)
 
-    def version(self):
+    def get_version(self):
         self.__open()
         self.telnet.write("quit\n")
 
