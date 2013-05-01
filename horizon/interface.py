@@ -166,6 +166,18 @@ class Interface():
         return matches.groups()[0]
 
     def get_major(self, type=HORIZON_MAJOR_ALL):
+        """
+        =================
+        get_major ( self, type ) : returns {}
+        =================
+
+        type: horizon.interface.HORIZON_MAJOR_ALL (default)
+              horizon.interface.HORIZON_MAJOR_ARTIFICAL
+              horizon.interface.HORIZON_MAJOR_MOON
+              horizon.interface.HORIZON_MAJOR_PLANET
+
+        Returns a list of major bodies and corresponding IDs
+        """
         self.__open()
         self.telnet.write("MB\n")
         # import pdb;pdb.set_trace()
@@ -179,7 +191,19 @@ class Interface():
 
         return self.__parse_major(result, type)
 
-    def get_minor(self, page=0):
+    def get_minor(self, page=0, page_size=-1):
+        """
+        =================
+        get_minor ( self, page ) : returns {}
+        =================
+
+        page: (default: 0) integer to specify page in pagination
+
+        page_size (default: -1): integer to specify how many
+            results per page
+
+        Returns a list of minor bodies and corresponding IDs
+        """
         self.__open()
         self.telnet.write("RAD > 0\n")
 
