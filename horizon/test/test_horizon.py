@@ -38,24 +38,24 @@ class TestHorizonInterface(unittest.TestCase):
 
     @pytest.mark.timeout(10)
     def test_connection(self):
-        version = self.horizon.version()
+        version = self.horizon.get_version()
 
         self.assertTrue(version)
 
     @pytest.mark.timeout(300)
     def test_minor_bodies(self):
-        data = self.horizon.minor()
+        data = self.horizon.get_minor()
 
         self.assertTrue(len(data))
 
     @pytest.mark.timeout(10)
     def test_major_bodies(self):
-        data = self.horizon.major()
+        data = self.horizon.get_major()
 
         self.assertTrue(len(data))
 
     @pytest.mark.timeout(10)
     def test_get(self):
-        data = self.horizon.get(100)
+        data = self.horizon.get(10)
 
         self.assertTrue(data)

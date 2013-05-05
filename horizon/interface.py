@@ -54,7 +54,7 @@ class Interface():
     re_version = re.compile("version|v\s?(\d+\.\d+)")
     # re_major = re.compile("^\s+(-?\d+)\s\s(\w+)", flags=re.MULTILINE)
     re_major = re.compile("^\s{2}(.{7})\s{2}(.{34})\s(.{11})\s{2}(.*)$", flags=re.MULTILINE)
-    re_minor = re.compile("^\s+(-?\d+)\s+(-?\d+)\s+[\w\-\(\)\/]+\s?\w*\s+([\w\-]+\s?\d*[\w]*)\s+([\d\.]+)$", flags=re.MULTILINE)
+    re_minor = re.compile("^\s{4}(.{8})\s{2}(.{8})\s{2}(.{13})\s{2}(.{25})\s(.+)$", flags=re.MULTILINE)
     re_meta = re.compile("(\w+)\s+([\d\/\s]+)$", flags=re.MULTILINE)
     re_meta_dictA = re.compile("^\s{2}([A-Z].{0,21})=\s{1,2}(.{015})\s[A-Z]", flags=re.MULTILINE)
     re_meta_dictB = re.compile("\s([A-Z].{0,21})=\s{1,2}(.{0,16})\s?$", flags=re.MULTILINE)
@@ -142,9 +142,19 @@ class Interface():
             return []
 
         # flip the results
-        matches = list((m[2].lower(), m[0], m[1], m[3]) for m in matches)
+        # matches = list((m[2].lower(), m[0], m[1], m[3]) for m in matches)
 
-        return dict(matches)
+        matches = list(dict({
+            'id': match[0].strip(),
+            'epoch': match[1].strip(),
+            'designation': match[2].strip(),
+            'name': match[3].strip(),
+            'radius': match[4].strip(),
+        }) for match in matches)
+
+        print matches
+
+        return matches
 
     def __parse_meta(self, data):
 
@@ -238,17 +248,14 @@ class Interface():
         self.__open()
         self.telnet.write("RAD > 0\n")
 
-        buff = self.telnet.read_until(HORIZON_MISC_PROMPT)
-        print buff
+        self.telnet.read_until(HORIZON_MISC_PROMPT)
+        # print buff
 
         self.telnet.write("\r\n")
         result = self.telnet.read_until(HORIZON_QUERY_PROMPT)
-        print result
+        # print result
 
         self.__close(send_quit=True)
-
-        if DEBUG:
-            print result
 
         return self.__parse_minor(result)
 
