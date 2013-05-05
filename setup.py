@@ -11,7 +11,7 @@ setup(
     license='LICENSE.txt',
     description='Access to NASA\'s JPL HORIZON Ephemeris System',
     
-long_description='{0}\r\n{1}'.format(open('README.txt').read(),open('CHANGES.txt').read()),
+long_description='{0}\r\n\r\nChanges\r\n-----------------\r\n{1}'.format(open('README.txt').read(),open('CHANGES.txt').read()),
     install_requires=[
         'pytest-timeout >= 0.3'
     ]
