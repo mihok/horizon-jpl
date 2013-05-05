@@ -16,3 +16,5 @@ v0.1.5, 2013-May-05 -- Fixing major bodies query
   * Fixing json output to include id, name, designation, and 
 alias
   * Fixing major body type specification to return accuratly
+
+v0.1.6, 2013-May-05 -- Fixing minor bodies query
