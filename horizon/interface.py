@@ -152,7 +152,7 @@ class Interface():
             'radius': match[4].strip(),
         }) for match in matches)
 
-        print matches
+        # print matches
 
         return matches
 
@@ -212,7 +212,7 @@ class Interface():
     def get_major(self, type=HORIZON_MAJOR_ALL):
         """
         =================
-        get_major ( self, type ) : returns {}
+        get_major ( self, type ) : returns [{},]
         =================
 
         type: horizon.interface.HORIZON_MAJOR_ALL (default)
@@ -235,7 +235,7 @@ class Interface():
     def get_minor(self, page=0, page_size=-1):
         """
         =================
-        get_minor ( self, page ) : returns {}
+        get_minor ( self, page ) : returns [{},]
         =================
 
         page: (default: 0) integer to specify page in pagination
@@ -266,12 +266,12 @@ class Interface():
         self.__open()
         self.telnet.write("{0}\n".format(id))
 
-        buff = self.telnet.read_until(HORIZON_QUERY_PROMPT)
-        print buff
+        self.telnet.read_until(HORIZON_QUERY_PROMPT)
+        # print buff
 
         self.telnet.write("E\n")
-        buff = self.telnet.read_until(HORIZON_MISC_PROMPT)
-        print buff
+        self.telnet.read_until(HORIZON_MISC_PROMPT)
+        # print buff
 
         # select cartesian data type
         if type is HORIZON_OBSERVE:
@@ -281,28 +281,28 @@ class Interface():
         else:
             self.telnet.write("v\n")
 
-        print self.telnet.read_until(HORIZON_MISC_PROMPT)
+        self.telnet.read_until(HORIZON_MISC_PROMPT)
 
         # select reference point ID, coord, geo
         self.telnet.write("{0}\n".format(ref))
-        print self.telnet.read_until(HORIZON_OPTION_PROMPT)
+        self.telnet.read_until(HORIZON_OPTION_PROMPT)
         self.telnet.write("y\n")
 
         # select reference plane: body, eclip, frame
-        print self.telnet.read_until(HORIZON_MISC_PROMPT)
+        self.telnet.read_until(HORIZON_MISC_PROMPT)
         self.telnet.write("body\n")
 
-        print self.telnet.read_until(HORIZON_MISC_PROMPT)
+        self.telnet.read_until(HORIZON_MISC_PROMPT)
         self.telnet.write("{0}\n".format(start))
-        print self.telnet.read_until(HORIZON_MISC_PROMPT)
+        self.telnet.read_until(HORIZON_MISC_PROMPT)
         self.telnet.write("{0}\n".format(end))
 
         # frequency: 1d, 1h, 1m
-        print self.telnet.read_until(HORIZON_MISC_PROMPT)
+        self.telnet.read_until(HORIZON_MISC_PROMPT)
         self.telnet.write("{0}\n".format(frequency))
 
         # accept output
-        print self.telnet.read_until(HORIZON_MISC_PROMPT)
+        self.telnet.read_until(HORIZON_MISC_PROMPT)
         self.telnet.write("\r\n")
 
         result = self.telnet.read_until(HORIZON_CARTESIAN_PROMPT)
@@ -310,10 +310,6 @@ class Interface():
         # Cartesian queries have a weird exit
         self.telnet.write("N\n")
         self.__close(send_quit=True)
-
-        if DEBUG:
-            print result
-
         return self.__parse_cartesian(result)
 
     def query(self, query):
@@ -338,9 +334,6 @@ class Interface():
 
         self.__close(send_quit=True)
 
-        if DEBUG:
-            print result
-
         return self.__parse_meta(result)
 
     def get_version(self):
@@ -350,8 +343,5 @@ class Interface():
         result = self.telnet.read_until(HORIZON_QUERY_PROMPT)
 
         self.__close()
-
-        if DEBUG:
-            print result
 
         return self.__parse_version(result)
