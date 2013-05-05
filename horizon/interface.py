@@ -52,7 +52,8 @@ HORIZON_MAJOR_ARTIFICAL = 3
 class Interface():
     telnet = Telnet()
     re_version = re.compile("version|v\s?(\d+\.\d+)")
-    re_major = re.compile("^\s+(-?\d+)\s\s(\w+)", flags=re.MULTILINE)
+    # re_major = re.compile("^\s+(-?\d+)\s\s(\w+)", flags=re.MULTILINE)
+    re_major = re.compile("^\s{2}(.{7})\s{2}(.{34})\s(.{11})\s{2}(.*)$", flags=re.MULTILINE)
     re_minor = re.compile("^\s+(-?\d+)\s+(-?\d+)\s+[\w\-\(\)\/]+\s?\w*\s+([\w\-]+\s?\d*[\w]*)\s+([\d\.]+)$", flags=re.MULTILINE)
     re_meta = re.compile("(\w+)\s+([\d\/\s]+)$", flags=re.MULTILINE)
     re_meta_dictA = re.compile("^\s{2}([A-Z].{0,21})=\s{1,2}(.{015})\s[A-Z]", flags=re.MULTILINE)
@@ -78,28 +79,61 @@ class Interface():
             return []
 
         if major_type == HORIZON_MAJOR_ALL:
-            matches = list((match[1].lower(), match[0]) for match in matches)
+            matches = list(dict({
+                'id': match[0].strip(),
+                'name': match[1].strip(),
+                'designation': match[2].strip(),
+                'alias': match[3].strip(),
+            }) for match in matches)
         else:
             buff = list()
 
             for match in matches:
+                id = 0
+                # skip match if id is not an integer
+                try:
+                    id = int(match[0])
+                except ValueError:
+                    continue
+
                 # import pdb; pdb.set_trace()
-                if major_type is HORIZON_MAJOR_ARTIFICAL and int(match[0]) < 0:
-                    print "SATILLITE {0}".format(match[0])
-                    buff.append((match[1].lower(), match[0]))
+                if major_type is HORIZON_MAJOR_ARTIFICAL and (id < 0 or id > 1000):
+                    # print "SATILLITE {0}".format(match[0])
+                    buff.append(dict({
+                        'id': match[0].strip(),
+                        'name': match[1].strip(),
+                        'designation': match[2].strip(),
+                        'alias': match[3].strip(),
+                    }))
 
-                elif major_type is HORIZON_MAJOR_PLANET and int(match[0]) % 10 == 0:
-                    print "PLANET {0}".format(match[0])
-                    buff.append((match[1].lower(), match[0]))
+                elif (major_type is HORIZON_MAJOR_PLANET and
+                        id % 100 == 99 and
+                        id > 10):
+                    # print "PLANET {0}".format(match[0])
+                    buff.append(dict({
+                        'id': match[0].strip(),
+                        'name': match[1].strip(),
+                        'designation': match[2].strip(),
+                        'alias': match[3].strip(),
+                    }))
 
-                elif major_type is HORIZON_MAJOR_MOON and int(match[0]) % 10 == 0 and int(match[0]) > 0:
-                    print "MOON {0}".format(match[0])
-                    buff.append((match[1].lower(), match[0]))
+                elif (major_type is HORIZON_MAJOR_MOON and
+                        id % 10 != 9 and
+                        id % 10 != 0 and
+                        id > 10 and
+                        id < 1000):
+                    # print "MOON {0} ({0} % 10 == {1})".format(match[0], id % 10)
+                    buff.append(dict({
+                        'id': match[0].strip(),
+                        'name': match[1].strip(),
+                        'designation': match[2].strip(),
+                        'alias': match[3].strip(),
+                    }))
                 else:
                     continue
             matches = buff
 
-        return dict(matches)
+        return matches
 
     def __parse_minor(self, data):
         matches = self.re_minor.findall(data)
@@ -183,9 +217,6 @@ class Interface():
         # import pdb;pdb.set_trace()
 
         result = self.telnet.read_until(HORIZON_QUERY_PROMPT)
-
-        if DEBUG:
-            print result
 
         self.__close(send_quit=True)
 
