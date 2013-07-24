@@ -289,8 +289,10 @@ class Interface():
         self.telnet.write("y\n")
 
         # select reference plane: body, eclip, frame
-        self.telnet.read_until(HORIZON_MISC_PROMPT)
-        self.telnet.write("body\n")
+        # (This is not needed for HORIZON_OBSERVE reqs)
+        if type is not HORIZON_OBSERVE:
+            self.telnet.read_until(HORIZON_MISC_PROMPT)
+            self.telnet.write("body\n")
 
         self.telnet.read_until(HORIZON_MISC_PROMPT)
         self.telnet.write("{0}\n".format(start))
@@ -304,6 +306,12 @@ class Interface():
         # accept output
         self.telnet.read_until(HORIZON_MISC_PROMPT)
         self.telnet.write("\r\n")
+
+        # select table quantities
+        # (only for HORIZON_OBSERVE)
+        if type is HORIZON_OBSERVE:
+            self.telnet.read_until(HORIZON_MISC_PROMPT)
+            self.telnet.write("A\n")
 
         result = self.telnet.read_until(HORIZON_CARTESIAN_PROMPT)
 
