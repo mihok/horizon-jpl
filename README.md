@@ -14,6 +14,7 @@ Demo
 ------------------------------
 
 To run the demo you just have to do the following steps in a terminal:
+
 1. ```cd``` into demo directory
 2. ```pip install -r requirements.txt``` to install dependancies
 3. ```python demo.py``` to start the server
