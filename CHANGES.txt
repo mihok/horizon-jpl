@@ -13,11 +13,11 @@ v0.1.3, 2013-Apr-22 -- Removing bin standalone, adding convenience request_handl
 v0.1.4, 2013-Apr-30 -- Changing API Calls major->get_major, minor->get_minor respectively
 
 v0.1.5, 2013-May-05 -- Fixing major bodies query
-  * Fixing json output to include id, name, designation, and 
+  * Fixing json output to include id, name, designation, and
 alias
   * Fixing major body type specification to return accuratly
 
 v0.1.6, 2013-May-05 -- Fixing minor bodies query
 
-v0.1.7, 2013-May-05 -- Removing unecessary debug prints, updated internal 
+v0.1.7, 2013-May-05 -- Removing unecessary debug prints, updated internal
 docs

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<script type="text/javascript" src="jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="json2.js"></script>
+<script type="text/javascript">
+		
+	function generateJSON(f)
+	{
+		//var queryType = $('input:radio[name="queryType"]:checked').val();
+		var queryType = $('select[name="queryType"]').val();
+		var rootUrl = "//api?query=";
+		if (queryType == "list")
+		{
+			var filter = document.forms["input"]["bodyType"].value
+			var jsonRequest = '{"horizons-api":{"version":"1.0","query_type":"'+queryType+'","response_type":"json","filters":{"body_type":"'+filter+'"}}}';
+		}
+		else
+		{
+			var filter = document.forms["input"]["idValue"].value
+			var jsonRequest = '{"horizons-api":{"version":"1.0","query_type":"'+queryType+'","response_type":"json","filters":{"value":"'+filter+'"}}}';
+		}
+		
+		var encodeRequest = encodeURI(jsonRequest);
+		var requestUrl = rootUrl + encodeRequest;
+		
+		document.forms["input"]["message"].value = "processing...";
+		//alert(requestUrl);
+		$.ajax({
+			url: requestUrl,
+			dataType: 'json',
+			type: 'GET'
+		}).done(function(data) { 
+		        f.jsonResponse.value = JSON.stringify(data, null, "\t");
+		        document.forms["input"]["message"].value = "success!";
+		   })
+          .fail(function(xhr, status, error) {
+                document.forms["input"]["message"].value = status + " : " + error;
+           })
+          .always(function() { 
+          		 //alert("complete");
+           })
+	}
+	/*
+	function filter()
+	{
+		var radioSelction = $('input:radio[name="queryType"]:checked').val()
+		if (radioSelction == 'list')
+		{
+			var div_ref = document.getElementById("id_textbox_1");
+			div_ref.style.visibility = "visible";
+			var div_ref = document.getElementById("id_textbox_2");
+			div_ref.style.visibility = "hidden";
+		}
+		else
+		{
+			var div_ref = document.getElementById("id_textbox_1");
+			div_ref.style.visibility = "hidden";
+			var div_ref = document.getElementById("id_textbox_2");
+			div_ref.style.visibility = "visible";
+		}
+	}
+	*/
+	function filter(select)
+	{
+		var optionSelected = $('select[name="queryType"]').val();
+		//alert(optionSelected);
+		if (optionSelected == "list")
+		{
+			var div_ref = document.getElementById("id_textbox_1");
+			div_ref.style.visibility = "visible";
+			var div_ref = document.getElementById("id_textbox_2");
+			div_ref.style.visibility = "hidden";
+		}
+		else if (optionSelected == "body_id")
+		{
+			var div_ref = document.getElementById("id_textbox_1");
+			div_ref.style.visibility = "hidden";
+			var div_ref = document.getElementById("id_textbox_2");
+			div_ref.style.visibility = "visible";
+		}
+		else
+		{
+			var div_ref = document.getElementById("id_textbox_1");
+			div_ref.style.visibility = "hidden";
+			var div_ref = document.getElementById("id_textbox_2");
+			div_ref.style.visibility = "hidden";
+		}
+	}
+	
+	function resetForm()
+	{
+		var div_ref = document.getElementById("id_textbox_1");
+		div_ref.style.visibility = "hidden";
+		var div_ref = document.getElementById("id_textbox_2");
+		div_ref.style.visibility = "hidden";
+	}
+	
+</script>
+
+<title>Python JPL Horizon</title>
+</head>
+
+<body class="">
+<h1>Python JPL Horizon</h1>
+<p>Please start by entering parameter values for query options.
+<br>
+<form class="" name="input">
+	<div class="">
+		Select a query type:<br>
+		<!--input type="radio" name="queryType" value="list" class="" onclick="filter();">list<br>
+		<input type="radio" name="queryType" value="id" class="" onclick="filter();">id<br><br-->
+		
+		<select name="queryType" onchange=filter(this)>
+			<option selected="selected">--- select... ---</option>
+			<option value="list">list</option>
+			<option value="body_id">body ID</option>
+		</select>
+		<br>
+		<br>
+		<div id=id_textbox_1 style="visibility:hidden;">
+	      	Enter body type:<br> 
+	      	<input type="Text" name="bodyType">
+      	</div>
+      	<div id=id_textbox_2 style="visibility:hidden;">
+	      	Enter value:<br>
+	      	<input type="Text" name="idValue">
+      	</div>
+      	<br>
+		JSON output:<br>
+		<textarea id="jsonResponse" name="jsonResponse" cols="100" rows="15" class=""></textarea><br>
+		
+		Status: <input type="Text" name="message" value=""><br><br>
+		
+		<input type="button" onClick="return generateJSON(this.form)" value="Generate" class="">
+		&nbsp;&nbsp;&nbsp;
+		<input type="reset" value="Reset" onClick="return resetForm()">
+		
+	</div>
+
+</form>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-38769243-2']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</body>
+</html>

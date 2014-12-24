@@ -54,7 +54,8 @@ class Interface():
     re_version = re.compile("version|v\s?(\d+\.\d+)")
     # re_major = re.compile("^\s+(-?\d+)\s\s(\w+)", flags=re.MULTILINE)
     re_major = re.compile("^\s{2}(.{7})\s{2}(.{34})\s(.{11})\s{2}(.*)$", flags=re.MULTILINE)
-    re_minor = re.compile("^\s{4}(.{8})\s{2}(.{8})\s{2}(.{13})\s{2}(.{25})\s(.+)$", flags=re.MULTILINE)
+    # re_minor = re.compile("^\s{4}(.{8})\s{2}(.{8})\s{2}(.{13})\s{2}(.{25})\s(.+)$", flags=re.MULTILINE)
+    re_minor = re.compile("^\s+(-?\d+)\s+(-?\d+)\s+[\w\-\(\)\/]+\s?\w*\s+([\w\-]+\s?\d*[\w]*)\s+([\d\.]+)$", flags=re.MULTILINE)
     re_meta = re.compile("(\w+)\s+([\d\/\s]+)$", flags=re.MULTILINE)
     re_meta_dictA = re.compile("^\s{2}([A-Z].{0,21})=\s{1,2}(.{015})\s[A-Z]", flags=re.MULTILINE)
     re_meta_dictB = re.compile("\s([A-Z].{0,21})=\s{1,2}(.{0,16})\s?$", flags=re.MULTILINE)
@@ -318,6 +319,7 @@ class Interface():
         # Cartesian queries have a weird exit
         self.telnet.write("N\n")
         self.__close(send_quit=True)
+
         return self.__parse_cartesian(result)
 
     def query(self, query):
