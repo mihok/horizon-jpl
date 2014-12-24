@@ -21,3 +21,5 @@ v0.1.6, 2013-May-05 -- Fixing minor bodies query
 
 v0.1.7, 2013-May-05 -- Removing unecessary debug prints, updated internal
 docs
+
+v0.1.8, 2014-Dec-24 -- Updating the demo and documentation
