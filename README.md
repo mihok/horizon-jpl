@@ -10,6 +10,15 @@ Download the package from: https://pypi.python.org/pypi/HorizonJPL or from pip:
 
 Please note, this API is currently in development and things are subject to change in future versions.
 
+Demo
+------------------------------
+
+To run the demo you just have to do the following steps in a terminal:
+1. ```cd``` into demo directory
+2. ```pip install -r requirements.txt``` to install dependancies
+3. ```python demo.py``` to start the server
+4. Now you can navigate to http://127.0.0.1:5000 to see the demo
+
 Future Plans
 ------------------------------
 
@@ -32,10 +41,10 @@ For scientific uses, a modern planetary ephemeris comprises software that genera
 their satellites, asteroids, or comets, at virtually any time desired by the user.
 ```
 
-API Documentation & Resources
+External Documentation & Resources
 ------------------------------
 
-- Explorer and Future documentation home - http://nasa.apphb.com
+- Explorer Demo - http://nasa.apphb.com
 - Planetary Data System: http://pds.nasa.gov/
 - Jet Propulsion Labs: http://www.jpl.nasa.gov/
 - HORIZON User Manual: http://ssd.jpl.nasa.gov/?horizons_doc
