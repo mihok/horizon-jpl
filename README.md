@@ -2,7 +2,6 @@ HORIZON-JPL 0.1.8
 This Python API, is an effort towards opening NASA's PDS data sets to the public with a focus on
 ease of access. Thus creating, NASA's JPL Horizons On-Line Ephemeris System API
 
-<<<<<<< HEAD
 Download the package from: https://pypi.python.org/pypi/HorizonJPL or from pip:
       ```
       pip install horizonjpl
@@ -23,10 +22,6 @@ Creating a robust fault tolerant API is the number one goal. Included in this go
  - Ultra fast response parsing
  - Utilize cache wherever makes the most sense without affecting the integridy of the data
  - Simple RESTful API
-=======
-Download the package from: https://pypi.python.org/pypi/HorizonJPL
->>>>>>> 53f3ed81f1ce8b122e493a7b719ae43a1534892e
-
 
 Background
 ------------------------------
