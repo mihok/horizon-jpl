@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <base href="{{__url__}}"></base>
+    <meta charset="utf-8">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}}</title>
+    <link href='//fonts.googleapis.com/css?family=Raleway:400,300,600' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="static/css/normalize.css">
+    <link rel="stylesheet" href="static/css/skeleton.css">
+    <link rel="stylesheet" href="static/css/codemirror.css">
+    <style type="text/css">
+      #application {
+        margin-top: 10%;
+      }
+
+      .CodeMirror {
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="navbar" id="top"></header>
+    <section id="application" class="container">
+      <div class="row">
+        <div id="twelve columns">
+          <h1>{{title}}</h1>
+          <p>{{description}}</p>
+        </div>
+      </div>
+      <form>
+        <div class="row">
+          <!-- <div class="six columns">
+            <label for="exampleEmailInput">Your email</label>
+            <input class="u-full-width" placeholder="test@mailbox.com" id="exampleEmailInput" type="email">
+          </div> -->
+          <div class="six columns">
+            <label for="queryType">Query</label>
+            <select class="u-full-width" id="queryType">
+              <option value="">Query type&hellip;</option>
+              <option value="list">List of Bodies</option>
+              <option value="body">Body Details</option>
+            </select>
+          </div>
+          <div  class="six columns" id="bodyTypeWrapper" style="display:none;">
+            <label for="bodyType">Body type</label>
+            <select class="u-full-width" id="bodyType">
+              <option value="">Type&hellip;</option>
+              <option value="major">Major (Planets, Sun, &hellip;)</option>
+              <option value="minor">Minor (Comets, Asteroids, &hellip;</option>
+            </select>
+          </div>
+          <div class="six columns" id="bodySearchWrapper" style="display:none;">
+            <label for="bodySearch">Body ID or Name</label>
+            <input class="u-full-width" placeholder="Earth, 400, &hellip;" id="bodySearch" type="text">
+          </div>
+        </div>
+        <label for="result">Result</label>
+        <textarea class="u-full-width" placeholder="{}" id="result"></textarea>
+        <button class="button-primary" id="submit" type="button">Submit</button>
+      </form>
+      <div class="row">
+        <div class="twelve columns" id="listQueryWrapper" style="display:none">
+          <pre><code>
+class Interface():
+  def get_major(self, type=HORIZON_MAJOR_ALL):
+
+      type: horizon.interface.HORIZON_MAJOR_ALL (default)
+            horizon.interface.HORIZON_MAJOR_ARTIFICAL
+            horizon.interface.HORIZON_MAJOR_MOON
+            horizon.interface.HORIZON_MAJOR_PLANET
+
+      Returns a list of major bodies and corresponding IDs
+
+
+  def get_minor(self, page=0, page_size=-1):
+
+      page: (default: 0) integer to specify page in pagination
+
+      page_size (default: -1): integer to specify how many
+          results per page
+
+      Returns a list of minor bodies and corresponding IDs
+
+          </code></pre>
+        </div>
+        <div class="twelve columns" id="bodyQueryWrapper" style="display:none;">
+          <pre><code>
+class Interface():
+  def get(self, id):
+
+  def query(self, query):
+          </code></pre>
+        </div>
+      </div>
+    </section>
+    <script type="text/javascript" src="/static/scripts/codemirror.js"></script>
+    <script type="text/javascript">
+      (function () {
+        'use strict';
+
+        // Elements
+        var $queryType = document.getElementById('queryType');
+        var $bodyQuery = document.getElementById('bodyQueryWrapper');
+        var $listQuery = document.getElementById('listQueryWrapper');
+        var $bodyType = document.getElementById('bodyType');
+        var $bodyTypeWrapper = document.getElementById('bodyTypeWrapper');
+        var $bodySearch = document.getElementById('bodySearch');
+        var $bodySearchWrapper = document.getElementById('bodySearchWrapper');
+        var $result = document.getElementById('result');
+        var $submit = document.getElementById('submit');
+        var $resultCodeEditor = CodeMirror.fromTextArea($result, {
+          'value': '{}',
+          'matchBrackets': true,
+          'autoCloseBrackets': true,
+          'mode': 'application/json',
+          'lineNumbers': true,
+          'lineWrapping': true,
+          'extraKeys': {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
+          'foldGutter': true,
+          'gutters': ['CodeMirror-linenumbers', 'CodeMirror-foldgutter']
+        });
+
+        // Functions
+        function query(url, callback) {
+          var xhr;
+
+          if(typeof XMLHttpRequest !== 'undefined') xhr = new XMLHttpRequest();
+          else {
+            var versions = ['MSXML2.XmlHttp.5.0',
+                            'MSXML2.XmlHttp.4.0',
+                            'MSXML2.XmlHttp.3.0',
+                            'MSXML2.XmlHttp.2.0',
+                            'Microsoft.XmlHttp']
+
+             for(var i = 0, len = versions.length; i < len; i++) {
+                try {
+                    xhr = new ActiveXObject(versions[i]);
+                    break;
+                }
+                catch(e){}
+             } // end for
+          }
+
+          xhr.onreadystatechange = ensureReadiness;
+
+          function ensureReadiness() {
+              if(xhr.readyState < 4) {
+                  return;
+              }
+
+              if(xhr.status !== 200) {
+                  return;
+              }
+
+              // all is well
+              if(xhr.readyState === 4) {
+                  callback(xhr);
+              }
+          }
+
+          xhr.open('GET', url, true);
+          xhr.send('');
+
+          return xhr;
+        }
+
+        function result(xhr) {
+          var result = JSON.parse(xhr.responseText);
+
+          $resultCodeEditor.setValue(JSON.stringify(result, null, 4));
+
+          console.log($resultCodeEditor.getOption('mode'));
+          console.log($resultCodeEditor.getMode());
+        };
+
+        // Deal with change in query type
+        $queryType.onchange = function () {
+          if (this.style.removeProperty) {
+              this.style.removeProperty('border');
+          } else {
+              this.style.removeAttribute('border');
+          }
+
+
+          if (typeof this.value === 'undefined' || this.value === '') {
+            // Reset
+            $bodyQuery.style.display = "none";
+            $listQuery.style.display = "none";
+            $bodyTypeWrapper.style.display = "none";
+            $bodySearchWrapper.style.display = "none";
+          } else if (this.value === 'body') {
+            $listQuery.style.display = "none";
+            $bodyQuery.style.display = "block";
+            $bodyTypeWrapper.style.display = "none";
+            $bodySearchWrapper.style.display = "block";
+          } else if (this.value === 'list') {
+            $bodyQuery.style.display = "none";
+            $listQuery.style.display = "block";
+            $bodySearchWrapper.style.display = "none";
+            $bodyTypeWrapper.style.display = "block";
+          } else {
+            // TODO: Handle this better
+            throw 'BadRequestError';
+          }
+        };
+
+        // Handle querying the server
+        $submit.onclick = function () {
+          var xhr, url;
+
+          if (typeof $queryType.value === 'undefined' || $queryType.value === '') {
+            $queryType.style.border = '1px solid red';
+          } else if ($queryType.value === 'body') {
+            url = '/body/' + encodeURI($bodySearch.value);
+          } else if ($queryType.value === 'list') {
+            url = '/list/' + encodeURI($bodyType.value);
+          } else {
+            // TODO: Handle this better
+            throw 'BadRequestError';
+          }
+
+          xhr = query(url, result);
+        };
+      } ());
+    </script>
+  </body>
+</html>

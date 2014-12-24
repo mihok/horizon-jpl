@@ -1,0 +1,23 @@
+v0.0.1, 2013-Apr-18 -- Initial release.
+
+v0.0.2, 2013-Apr-21 -- Alpha release for NASA hackathon
+
+v0.1.0, 2013-Apr-22 -- Package distribution release
+
+v0.1.1, 2013-Apr-22 -- Updating package meta data
+
+v0.1.2, 2013-Apr-22 -- Fixing standalone executable
+
+v0.1.3, 2013-Apr-22 -- Removing bin standalone, adding convenience request_handler
+
+v0.1.4, 2013-Apr-30 -- Changing API Calls major->get_major, minor->get_minor respectively
+
+v0.1.5, 2013-May-05 -- Fixing major bodies query
+  * Fixing json output to include id, name, designation, and 
+alias
+  * Fixing major body type specification to return accuratly
+
+v0.1.6, 2013-May-05 -- Fixing minor bodies query
+
+v0.1.7, 2013-May-05 -- Removing unecessary debug prints, updated internal 
+docs

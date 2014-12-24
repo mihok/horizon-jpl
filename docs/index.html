@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>Horizon JPL</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id="background"></div>
+<div id='container'>
+  <div class='section'>
+    <div class='docs'><h1>Horizon JPL</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      <h3>Horizon JPL Python Interface</h3>
+<p>Written by: Matthew Mihok (@mattmattmatt)</p>
+<p>The MIT License (MIT)
+Copyright (c) 2013</p>
+<p>Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the
+following conditions:</p>
+<p>The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.</p>
+<p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">from</span> <span class="nn">telnetlib</span> <span class="kn">import</span> <span class="n">Telnet</span>
+
+<span class="kn">from</span> <span class="nn">horizon.config</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">HORIZON_HOST</span><span class="p">,</span>
+    <span class="n">HORIZON_PORT</span><span class="p">,</span>
+    <span class="n">HORIZON_PROMPT</span><span class="p">,</span>
+    <span class="n">HORIZON_QUERY_PROMPT</span><span class="p">,</span>
+    <span class="n">HORIZON_OPTION_PROMPT</span><span class="p">,</span>
+    <span class="n">HORIZON_MISC_PROMPT</span><span class="p">,</span>
+    <span class="n">HORIZON_CARTESIAN_PROMPT</span><span class="p">,</span>
+    <span class="n">DEBUG</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">HORIZON_OBSERVE</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">HORIZON_ELEMENTS</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">HORIZON_VECTORS</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="n">HORIZON_MAJOR_ALL</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">HORIZON_MAJOR_PLANET</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">HORIZON_MAJOR_MOON</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">HORIZON_MAJOR_ARTIFICAL</span> <span class="o">=</span> <span class="mi">3</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">Interface</span><span class="p">():</span>
+    <span class="n">telnet</span> <span class="o">=</span> <span class="n">Telnet</span><span class="p">()</span>
+    <span class="n">re_version</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;version|v\s?(\d+\.\d+)&quot;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      <p>re_major = re.compile("^\s+(-?\d+)\s\s(\w+)", flags=re.MULTILINE)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">re_major</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;^\s{2}(.{7})\s{2}(.{34})\s(.{11})\s{2}(.*)$&quot;</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
+    <span class="n">re_minor</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;^\s{4}(.{8})\s{2}(.{8})\s{2}(.{13})\s{2}(.{25})\s(.+)$&quot;</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
+    <span class="n">re_meta</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;(\w+)\s+([\d\/\s]+)$&quot;</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
+    <span class="n">re_meta_dictA</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;^\s{2}([A-Z].{0,21})=\s{1,2}(.{015})\s[A-Z]&quot;</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
+    <span class="n">re_meta_dictB</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;\s([A-Z].{0,21})=\s{1,2}(.{0,16})\s?$&quot;</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">MULTILINE</span><span class="p">)</span>
+    <span class="n">re_meta_fail</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;No such object record found\: \d+&quot;</span><span class="p">)</span>
+    <span class="n">re_cartesian</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&quot;\$\$SOE(.*)\$\$EOE&quot;</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__open</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">HORIZON_HOST</span><span class="p">,</span> <span class="n">HORIZON_PORT</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_PROMPT</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      <p>self.telnet.read_until(HORIZON_PROMPT)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__close</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">send_quit</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">send_quit</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\r</span><span class="s">quit</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__parse_major</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">major_type</span><span class="o">=</span><span class="n">HORIZON_MAJOR_ALL</span><span class="p">):</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">re_major</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      <p>import pdb; pdb.set_trace()</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span> <span class="ow">is</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">major_type</span> <span class="o">==</span> <span class="n">HORIZON_MAJOR_ALL</span><span class="p">:</span>
+            <span class="n">matches</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">dict</span><span class="p">({</span>
+                <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                <span class="s">&#39;designation&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                <span class="s">&#39;alias&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+            <span class="p">})</span> <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">buff</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
+                <span class="nb">id</span> <span class="o">=</span> <span class="mi">0</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      <p>skip match if id is not an integer</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                <span class="k">try</span><span class="p">:</span>
+                    <span class="nb">id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">match</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">continue</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      <p>import pdb; pdb.set_trace()</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                <span class="k">if</span> <span class="n">major_type</span> <span class="ow">is</span> <span class="n">HORIZON_MAJOR_ARTIFICAL</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">id</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">id</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-10'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      <p>print "SATILLITE {0}".format(match[0])</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                    <span class="n">buff</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">dict</span><span class="p">({</span>
+                        <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                        <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                        <span class="s">&#39;designation&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                        <span class="s">&#39;alias&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                    <span class="p">}))</span>
+
+                <span class="k">elif</span> <span class="p">(</span><span class="n">major_type</span> <span class="ow">is</span> <span class="n">HORIZON_MAJOR_PLANET</span> <span class="ow">and</span>
+                        <span class="nb">id</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">99</span> <span class="ow">and</span>
+                        <span class="nb">id</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-11'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-11'>#</a>
+      </div>
+      <p>print "PLANET {0}".format(match[0])</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                    <span class="n">buff</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">dict</span><span class="p">({</span>
+                        <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                        <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                        <span class="s">&#39;designation&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                        <span class="s">&#39;alias&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                    <span class="p">}))</span>
+
+                <span class="k">elif</span> <span class="p">(</span><span class="n">major_type</span> <span class="ow">is</span> <span class="n">HORIZON_MAJOR_MOON</span> <span class="ow">and</span>
+                        <span class="nb">id</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">!=</span> <span class="mi">9</span> <span class="ow">and</span>
+                        <span class="nb">id</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span>
+                        <span class="nb">id</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="ow">and</span>
+                        <span class="nb">id</span> <span class="o">&lt;</span> <span class="mi">1000</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-12'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-12'>#</a>
+      </div>
+      <p>print "MOON {0} ({0} % 10 == {1})".format(match[0], id % 10)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                    <span class="n">buff</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">dict</span><span class="p">({</span>
+                        <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                        <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                        <span class="s">&#39;designation&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                        <span class="s">&#39;alias&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                    <span class="p">}))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">continue</span>
+            <span class="n">matches</span> <span class="o">=</span> <span class="n">buff</span>
+
+        <span class="k">return</span> <span class="n">matches</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-13'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-13'>#</a>
+      </div>
+
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__parse_minor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">re_minor</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span> <span class="ow">is</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-14'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-14'>#</a>
+      </div>
+      <p>flip the results
+matches = list((m[2].lower(), m[0], m[1], m[3]) for m in matches)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">matches</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">dict</span><span class="p">({</span>
+            <span class="s">&#39;id&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+            <span class="s">&#39;epoch&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+            <span class="s">&#39;designation&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+            <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+            <span class="s">&#39;radius&#39;</span><span class="p">:</span> <span class="n">match</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+        <span class="p">})</span> <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-15'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-15'>#</a>
+      </div>
+      <p>print matches</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">return</span> <span class="n">matches</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-16'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-16'>#</a>
+      </div>
+
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__parse_meta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">re_meta_fail</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s">&#39;error&#39;</span><span class="p">:</span> <span class="s">&#39;No such object record found&#39;</span><span class="p">}</span>
+
+        <span class="n">matches</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">matches</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">re_meta_dictA</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">matches</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">re_meta_dictB</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">re_meta</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">m</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-17'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-17'>#</a>
+      </div>
+      <p>import pdb; pdb.set_trace()</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">name</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="nb">id</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39; / &#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-18'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-18'>#</a>
+      </div>
+      <p>include name and id along with detailed data</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">matches</span> <span class="o">+=</span> <span class="p">[(</span><span class="s">&#39;ID&#39;</span><span class="p">,</span> <span class="nb">id</span><span class="p">)]</span>
+        <span class="n">matches</span> <span class="o">+=</span> <span class="p">[(</span><span class="s">&#39;Name&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)]</span>
+
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-19'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-19'>#</a>
+      </div>
+
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__parse_cartesian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">re_cartesian</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">groups</span><span class="p">()</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\r\n</span><span class="s">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)):</span>
+            <span class="n">vector</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span> <span class="o">%</span> <span class="mi">4</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="s">&quot;time&quot;</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span> <span class="o">%</span> <span class="mi">4</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="s">&quot;ltrgrr&quot;</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span> <span class="o">%</span> <span class="mi">4</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="s">&quot;vxvyvz&quot;</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">i</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span> <span class="o">%</span> <span class="mi">4</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="s">&quot;xyz&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">break</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">()</span>
+            <span class="n">vector</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-20'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-20'>#</a>
+      </div>
+
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">__parse_version</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="n">matches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">re_version</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">matches</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-21'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-21'>#</a>
+      </div>
+      <p>fail if cant find</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">return</span> <span class="n">matches</span><span class="o">.</span><span class="n">groups</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-22'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-22'>#</a>
+      </div>
+      <p>=================
+get_major ( self, type ) : returns [{},]
+=================</p>
+<p>type: horizon.interface.HORIZON_MAJOR_ALL (default)
+      horizon.interface.HORIZON_MAJOR_ARTIFICAL
+      horizon.interface.HORIZON_MAJOR_MOON
+      horizon.interface.HORIZON_MAJOR_PLANET</p>
+<p>Returns a list of major bodies and corresponding IDs</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">get_major</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">HORIZON_MAJOR_ALL</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-23'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-23'>#</a>
+      </div>
+
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">__open</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;MB</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-24'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-24'>#</a>
+      </div>
+      <p>import pdb;pdb.set_trace()</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_QUERY_PROMPT</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__close</span><span class="p">(</span><span class="n">send_quit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parse_major</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="nb">type</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-25'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-25'>#</a>
+      </div>
+      <p>=================
+get_minor ( self, page ) : returns [{},]
+=================</p>
+<p>page: (default: 0) integer to specify page in pagination</p>
+<p>page_size (default: -1): integer to specify how many
+    results per page</p>
+<p>Returns a list of minor bodies and corresponding IDs</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">get_minor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">page_size</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-26'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-26'>#</a>
+      </div>
+
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">__open</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;RAD &gt; 0</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_MISC_PROMPT</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-27'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-27'>#</a>
+      </div>
+      <p>print buff</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\r\n</span><span class="s">&quot;</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_QUERY_PROMPT</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-28'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-28'>#</a>
+      </div>
+      <p>print result</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">__close</span><span class="p">(</span><span class="n">send_quit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parse_minor</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-29'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-29'>#</a>
+      </div>
+
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">get_cartesian</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="s">&quot;500@10&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">HORIZON_VECTORS</span><span class="p">,</span> <span class="n">frequency</span><span class="o">=</span><span class="s">&quot;1h&quot;</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-30'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-30'>#</a>
+      </div>
+      <p>make sure start / end are valid or throw error</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">__open</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;{0}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">id</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_QUERY_PROMPT</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-31'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-31'>#</a>
+      </div>
+      <p>print buff</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;E</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_MISC_PROMPT</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-32'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-32'>#</a>
+      </div>
+      <p>print buff</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-33'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-33'>#</a>
+      </div>
+      <p>select cartesian data type</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="nb">type</span> <span class="ow">is</span> <span class="n">HORIZON_OBSERVE</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;o</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">type</span> <span class="ow">is</span> <span class="n">HORIZON_ELEMENTS</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;e</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;v</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_MISC_PROMPT</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-34'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-34'>#</a>
+      </div>
+      <p>select reference point ID, coord, geo</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;{0}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ref</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_OPTION_PROMPT</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;y</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-35'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-35'>#</a>
+      </div>
+      <p>select reference plane: body, eclip, frame
+(This is not needed for HORIZON_OBSERVE reqs)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="nb">type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">HORIZON_OBSERVE</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_MISC_PROMPT</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;body</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_MISC_PROMPT</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;{0}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">start</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_MISC_PROMPT</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;{0}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">end</span><span class="p">))</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-36'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-36'>#</a>
+      </div>
+      <p>frequency: 1d, 1h, 1m</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_MISC_PROMPT</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;{0}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">frequency</span><span class="p">))</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-37'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-37'>#</a>
+      </div>
+      <p>accept output</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_MISC_PROMPT</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\r\n</span><span class="s">&quot;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-38'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-38'>#</a>
+      </div>
+      <p>select table quantities
+(only for HORIZON_OBSERVE)</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="nb">type</span> <span class="ow">is</span> <span class="n">HORIZON_OBSERVE</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_MISC_PROMPT</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;A</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_CARTESIAN_PROMPT</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-39'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-39'>#</a>
+      </div>
+      <p>Cartesian queries have a weird exit</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;N</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__close</span><span class="p">(</span><span class="n">send_quit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parse_cartesian</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-40'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-40'>#</a>
+      </div>
+
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__open</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;{0}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">query</span><span class="p">))</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_QUERY_PROMPT</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__close</span><span class="p">(</span><span class="n">send_quit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s">&quot;Number of matches&quot;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parse_list</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-41'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-41'>#</a>
+      </div>
+      <p>if query returns single result, use meta parser</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parse_meta</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-42'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-42'>#</a>
+      </div>
+
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__open</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;{0}</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">id</span><span class="p">))</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_QUERY_PROMPT</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__close</span><span class="p">(</span><span class="n">send_quit</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parse_meta</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-43'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-43'>#</a>
+      </div>
+
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">def</span> <span class="nf">get_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__open</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;quit</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">telnet</span><span class="o">.</span><span class="n">read_until</span><span class="p">(</span><span class="n">HORIZON_QUERY_PROMPT</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__parse_version</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+</pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>
