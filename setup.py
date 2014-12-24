@@ -4,7 +4,7 @@ setup(
     name='HorizonJPL',
     version='0.1.8',
     author='Matthew Mihok',
-    author_email='matthew.mihok@niewma.com',
+    author_email='4d.69.68.6f.6b@gmail.com',
     packages=['horizon', 'horizon.test'],
     scripts=[],
     url='http://pypi.python.org/pypi/HorizonJPL/',
